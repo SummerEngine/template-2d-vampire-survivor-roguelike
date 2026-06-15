@@ -6,16 +6,24 @@ var damage: float = 30.0
 var lifetime: float = 2.0
 var homing: bool = false
 var target: Node2D = null
+var rotation_offset: float = 0.0
 
 const TURN_RATE: float = 6.0  # radians/sec steering for homing
 
-func setup(dir: Vector2, spd: float, dmg: float, life: float, home: bool, tgt: Node2D) -> void:
+## Configure from a WeaponDef. Call BEFORE add_child so _ready() sees final
+## values (lifetime timer, etc.). $Sprite2D resolves on the instanced scene
+## even before it enters the tree.
+func setup(dir: Vector2, tgt: Node2D, weapon: WeaponDef) -> void:
 	direction = dir.normalized()
-	speed = spd
-	damage = dmg
-	lifetime = life
-	homing = home
+	speed = weapon.projectile_speed
+	damage = weapon.damage
+	lifetime = weapon.lifetime
+	homing = weapon.homing
 	target = tgt
+	rotation_offset = deg_to_rad(weapon.projectile_rotation_offset_deg)
+	if weapon.projectile_texture != null:
+		$Sprite2D.texture = weapon.projectile_texture
+	$Sprite2D.scale = Vector2(weapon.projectile_scale, weapon.projectile_scale)
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
@@ -31,7 +39,7 @@ func _physics_process(delta: float) -> void:
 			var desired := (target.global_position - global_position).normalized()
 			direction = direction.lerp(desired, TURN_RATE * delta).normalized()
 	global_position += direction * speed * delta
-	rotation = direction.angle()
+	rotation = direction.angle() + rotation_offset
 
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("enemies"):

@@ -18,6 +18,8 @@ func _physics_process(_delta: float) -> void:
 		return
 	var dir := (target.global_position - global_position).normalized()
 	velocity = dir * speed
+	# Rotate to face the player. The bat sprite points "up" (-Y), so add 90 deg.
+	rotation = dir.angle() + PI / 2.0
 	move_and_slide()
 
 func take_damage(amount: float) -> void:

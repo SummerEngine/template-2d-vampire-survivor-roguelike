@@ -45,6 +45,6 @@ func _fire(weapon: WeaponDef) -> void:
 			var a := randf() * TAU
 			dir = Vector2(cos(a), sin(a))
 	var proj := projectile_scene.instantiate()
+	proj.setup(dir, target, weapon)
 	projectiles_container.add_child(proj)
 	proj.global_position = origin
-	proj.setup(dir, weapon.projectile_speed, weapon.damage, weapon.lifetime, weapon.homing, target)
