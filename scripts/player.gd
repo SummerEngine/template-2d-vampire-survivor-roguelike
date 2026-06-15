@@ -7,8 +7,10 @@ signal died
 @export var max_health: float = 100.0
 @export var world_half_size: float = 1500.0  # world spans -1500..1500 on each axis
 @export var body_radius: float = 16.0
+@export var base_regen: float = 2.0  # HP per second, always on
 
 var health: float
+var bonus_regen: float = 0.0  # added by level-up upgrades
 
 @onready var hurtbox: Area2D = $Hurtbox
 @onready var magnet: Area2D = $Magnet
@@ -44,6 +46,17 @@ func _process(delta: float) -> void:
 	for b in hurtbox.get_overlapping_bodies():
 		if b.is_in_group("enemies") and "contact_damage" in b:
 			take_damage(b.contact_damage * delta)
+	# Slow health regeneration (baseline + upgrades), only while alive.
+	if health > 0.0 and health < max_health:
+		health = min(max_health, health + (base_regen + bonus_regen) * delta)
+		health_changed.emit(health, max_health)
+
+func add_max_health(amount: float) -> void:
+	max_health += amount
+	health_changed.emit(health, max_health)
+
+func add_regen(amount: float) -> void:
+	bonus_regen += amount
 
 func take_damage(amount: float) -> void:
 	if health <= 0.0:

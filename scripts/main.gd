@@ -2,6 +2,16 @@ extends Node2D
 
 const GEM_SCENE := preload("res://scenes/xp_gem.tscn")
 
+# Pool of level-up upgrades. Each level-up shows 3 random distinct ones.
+const UPGRADES := [
+	{"id": "missiles", "label": "More Missiles (faster arrows)"},
+	{"id": "homing", "label": "More Homing Orbs (faster orbs)"},
+	{"id": "speed", "label": "More Movement Speed"},
+	{"id": "maxhp", "label": "+50 Max HP"},
+	{"id": "xprate", "label": "+1 XP per second"},
+	{"id": "regen", "label": "Faster Health Regen"},
+]
+
 @onready var player: CharacterBody2D = $Player
 @onready var spawner: Node = $EnemySpawner
 @onready var enemies: Node2D = $Enemies
@@ -19,14 +29,17 @@ const GEM_SCENE := preload("res://scenes/xp_gem.tscn")
 @onready var game_over_panel: Control = $UI/GameOverPanel
 @onready var result_label: Label = $UI/GameOverPanel/ResultLabel
 @onready var level_up_panel: Control = $UI/LevelUpPanel
-@onready var missiles_button: Button = $UI/LevelUpPanel/VBox/MissilesButton
-@onready var homing_button: Button = $UI/LevelUpPanel/VBox/HomingButton
-@onready var speed_button: Button = $UI/LevelUpPanel/VBox/SpeedButton
+@onready var option_buttons: Array[Button] = [
+	$UI/LevelUpPanel/VBox/Option0,
+	$UI/LevelUpPanel/VBox/Option1,
+	$UI/LevelUpPanel/VBox/Option2,
+]
 
 var kills: int = 0
 var survival_time: float = 0.0
 var is_game_over: bool = false
 var _pending_levelups: int = 0
+var _current_choices: Array = []
 
 func _ready() -> void:
 	game_over_panel.visible = false
@@ -38,9 +51,8 @@ func _ready() -> void:
 	enemies.child_entered_tree.connect(_on_enemy_added)
 	level_system.xp_changed.connect(_on_xp_changed)
 	level_system.leveled_up.connect(_on_leveled_up)
-	missiles_button.pressed.connect(_on_pick_missiles)
-	homing_button.pressed.connect(_on_pick_homing)
-	speed_button.pressed.connect(_on_pick_speed)
+	for i in option_buttons.size():
+		option_buttons[i].pressed.connect(_on_option_selected.bind(i))
 	_on_player_health_changed(player.max_health, player.max_health)
 	kills_label.text = "Kills: 0"
 	_update_time()
@@ -84,20 +96,32 @@ func _on_leveled_up(_lvl: int) -> void:
 		_show_levelup()
 
 func _show_levelup() -> void:
+	var pool := UPGRADES.duplicate()
+	pool.shuffle()
+	_current_choices = pool.slice(0, 3)
+	for i in option_buttons.size():
+		option_buttons[i].text = _current_choices[i]["label"]
 	get_tree().paused = true
 	level_up_panel.visible = true
 
-func _on_pick_missiles() -> void:
-	weapon_system.scale_fire_rate(false, 0.85)
+func _on_option_selected(index: int) -> void:
+	_apply_upgrade(_current_choices[index]["id"])
 	_resolve_choice()
 
-func _on_pick_homing() -> void:
-	weapon_system.scale_fire_rate(true, 0.85)
-	_resolve_choice()
-
-func _on_pick_speed() -> void:
-	player.speed *= 1.15
-	_resolve_choice()
+func _apply_upgrade(id: String) -> void:
+	match id:
+		"missiles":
+			weapon_system.scale_fire_rate(false, 0.85)
+		"homing":
+			weapon_system.scale_fire_rate(true, 0.85)
+		"speed":
+			player.speed *= 1.15
+		"maxhp":
+			player.add_max_health(50.0)
+		"xprate":
+			level_system.add_xp_rate(1.0)
+		"regen":
+			player.add_regen(1.5)
 
 func _resolve_choice() -> void:
 	_pending_levelups -= 1

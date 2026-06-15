@@ -9,10 +9,23 @@ signal leveled_up(level: int)
 var level: int = 1
 var xp: int = 0
 var xp_to_next: int = 5
+var xp_per_sec: float = 0.0  # passive XP gain from upgrades
+var _xp_accum: float = 0.0
 
 func _ready() -> void:
 	add_to_group("level_system")
 	xp_changed.emit(xp, xp_to_next, level)
+
+func _process(delta: float) -> void:
+	if xp_per_sec <= 0.0:
+		return
+	_xp_accum += xp_per_sec * delta
+	while _xp_accum >= 1.0:
+		_xp_accum -= 1.0
+		add_xp(1)
+
+func add_xp_rate(amount: float) -> void:
+	xp_per_sec += amount
 
 func add_xp(amount: int) -> void:
 	xp += amount

@@ -67,6 +67,7 @@ script = ExtResource("3")
 process_mode = 1
 
 [node name="LevelSystem" type="Node" parent="." unique_id=2058422801]
+process_mode = 1
 script = ExtResource("5")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=674777950]
@@ -182,14 +183,14 @@ layout_mode = 2
 text = "LEVEL UP!  Choose an upgrade"
 horizontal_alignment = 1
 
-[node name="MissilesButton" type="Button" parent="UI/LevelUpPanel/VBox" unique_id=184463526]
+[node name="Option0" type="Button" parent="UI/LevelUpPanel/VBox" unique_id=184463526]
 layout_mode = 2
-text = "More Missiles (faster arrows)"
+text = "Option 0"
 
-[node name="HomingButton" type="Button" parent="UI/LevelUpPanel/VBox" unique_id=1741491509]
+[node name="Option1" type="Button" parent="UI/LevelUpPanel/VBox" unique_id=1741491509]
 layout_mode = 2
-text = "More Homing Orbs (faster orbs)"
+text = "Option 1"
 
-[node name="SpeedButton" type="Button" parent="UI/LevelUpPanel/VBox" unique_id=2090064963]
+[node name="Option2" type="Button" parent="UI/LevelUpPanel/VBox" unique_id=2090064963]
 layout_mode = 2
-text = "More Movement Speed"
+text = "Option 2"
