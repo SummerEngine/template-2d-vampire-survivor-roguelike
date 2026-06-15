@@ -10,6 +10,14 @@ func setup(container: Node2D) -> void:
 	projectiles_container = container
 
 func _ready() -> void:
+	# Self-wire defaults so the system works without editor-set exports.
+	if weapons.is_empty():
+		weapons = [
+			preload("res://resources/weapons/homing_missile.tres"),
+			preload("res://resources/weapons/random_missile.tres"),
+		]
+	if projectile_scene == null:
+		projectile_scene = preload("res://scenes/projectile.tscn")
 	_cooldowns.resize(weapons.size())
 	for i in _cooldowns.size():
 		_cooldowns[i] = 0.0

@@ -10,6 +10,11 @@ var player: Node2D
 var enemies_container: Node2D
 var _timer: float = 0.0
 
+func _ready() -> void:
+	# Self-wire default so the spawner works without an editor-set export.
+	if enemy_scene == null:
+		enemy_scene = preload("res://scenes/enemy.tscn")
+
 func setup(p: Node2D, container: Node2D) -> void:
 	player = p
 	enemies_container = container
