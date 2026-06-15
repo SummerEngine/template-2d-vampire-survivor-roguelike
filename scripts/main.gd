@@ -11,6 +11,7 @@ const GEM_SCENE := preload("res://scenes/xp_gem.tscn")
 @onready var level_system: Node = $LevelSystem
 
 @onready var health_label: Label = $UI/HUD/HealthLabel
+@onready var health_bar: ProgressBar = $UI/HUD/HealthBar
 @onready var kills_label: Label = $UI/HUD/KillsLabel
 @onready var time_label: Label = $UI/HUD/TimeLabel
 @onready var level_label: Label = $UI/HUD/LevelLabel
@@ -102,6 +103,8 @@ func _resolve_choice() -> void:
 
 func _on_player_health_changed(current: float, maximum: float) -> void:
 	health_label.text = "HP: %d / %d" % [int(ceil(current)), int(maximum)]
+	health_bar.max_value = maximum
+	health_bar.value = current
 
 func _on_player_died() -> void:
 	is_game_over = true
