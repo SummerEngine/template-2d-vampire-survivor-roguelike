@@ -11,10 +11,16 @@ signal died
 var health: float
 
 @onready var hurtbox: Area2D = $Hurtbox
+@onready var magnet: Area2D = $Magnet
 
 func _ready() -> void:
 	health = max_health
 	health_changed.emit(health, max_health)
+	magnet.area_entered.connect(_on_magnet_area_entered)
+
+func _on_magnet_area_entered(area: Area2D) -> void:
+	if area.is_in_group("xp_gems"):
+		area.attract_to(self)
 
 func _physics_process(_delta: float) -> void:
 	var dir := Vector2.ZERO

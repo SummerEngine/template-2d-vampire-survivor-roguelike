@@ -10,6 +10,9 @@ radius = 16.0
 [sub_resource type="CircleShape2D" id="hurt"]
 radius = 20.0
 
+[sub_resource type="CircleShape2D" id="magnet"]
+radius = 140.0
+
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 1
 collision_mask = 4
@@ -30,6 +33,13 @@ collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
 shape = SubResource("hurt")
+
+[node name="Magnet" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Magnet"]
+shape = SubResource("magnet")
 
 [node name="WeaponSystem" type="Node" parent="."]
 script = ExtResource("2")

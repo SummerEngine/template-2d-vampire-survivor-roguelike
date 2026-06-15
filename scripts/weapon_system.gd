@@ -18,9 +18,20 @@ func _ready() -> void:
 		]
 	if projectile_scene == null:
 		projectile_scene = preload("res://scenes/projectile.tscn")
+	# Duplicate the WeaponDefs so runtime upgrades don't mutate the shared
+	# (cached) .tres resources, which would otherwise persist across restarts.
+	for i in weapons.size():
+		weapons[i] = weapons[i].duplicate()
 	_cooldowns.resize(weapons.size())
 	for i in _cooldowns.size():
 		_cooldowns[i] = 0.0
+
+## Multiply the fire rate (lower interval = faster) of every weapon whose
+## homing flag matches. Used by the level-up upgrades.
+func scale_fire_rate(homing_flag: bool, factor: float) -> void:
+	for w in weapons:
+		if w.homing == homing_flag:
+			w.fire_rate *= factor
 
 func _process(delta: float) -> void:
 	if projectiles_container == null:
