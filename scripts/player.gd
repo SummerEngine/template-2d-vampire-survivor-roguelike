@@ -7,8 +7,6 @@ signal died
 @export var max_health: float = 100.0
 @export var world_half_size: float = 1500.0  # world spans -1500..1500 on each axis
 @export var body_radius: float = 16.0
-# The hero art faces "down" (+Y), so subtract 90 deg to aim it at the move dir.
-@export var sprite_rotation_offset_deg: float = -90.0
 
 var health: float
 
@@ -35,9 +33,6 @@ func _physics_process(_delta: float) -> void:
 	var desired_anim := "walk" if dir != Vector2.ZERO else "idle"
 	if anim.animation != desired_anim:
 		anim.play(desired_anim)
-	# Rotate the sprite to face the movement direction (keep last facing when idle).
-	if dir != Vector2.ZERO:
-		anim.rotation = dir.angle() + deg_to_rad(sprite_rotation_offset_deg)
 	velocity = dir.normalized() * speed
 	move_and_slide()
 	# Belt-and-suspenders clamp in case the player slips past a wall.
