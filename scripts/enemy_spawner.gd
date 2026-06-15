@@ -1,6 +1,7 @@
 extends Node
 
 @export var spawn_interval: float = 1.0
+@export var min_spawn_interval: float = 0.2  # floor so it never spams every frame
 @export var min_spawn_distance: float = 600.0
 @export var max_spawn_distance: float = 1000.0
 @export var world_half_size: float = 1500.0
@@ -18,6 +19,10 @@ func _ready() -> void:
 func setup(p: Node2D, container: Node2D) -> void:
 	player = p
 	enemies_container = container
+
+## Make enemies spawn a bit more often (lower interval), with a floor.
+func increase_spawn_rate(factor: float) -> void:
+	spawn_interval = max(min_spawn_interval, spawn_interval * factor)
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(player) or enemies_container == null:

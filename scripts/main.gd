@@ -91,6 +91,8 @@ func _on_xp_changed(current: int, needed: int, lvl: int) -> void:
 	xp_bar.value = current
 
 func _on_leveled_up(_lvl: int) -> void:
+	# Ramp difficulty: enemies spawn slightly more often each level.
+	spawner.increase_spawn_rate(0.92)
 	_pending_levelups += 1
 	if not level_up_panel.visible:
 		_show_levelup()
