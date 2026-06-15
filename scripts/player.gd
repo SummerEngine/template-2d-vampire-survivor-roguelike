@@ -12,6 +12,7 @@ var health: float
 
 @onready var hurtbox: Area2D = $Hurtbox
 @onready var magnet: Area2D = $Magnet
+@onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 
 func _ready() -> void:
 	health = max_health
@@ -28,6 +29,10 @@ func _physics_process(_delta: float) -> void:
 	if Input.is_physical_key_pressed(KEY_S): dir.y += 1.0
 	if Input.is_physical_key_pressed(KEY_A): dir.x -= 1.0
 	if Input.is_physical_key_pressed(KEY_D): dir.x += 1.0
+	# Play the walk cycle while moving, idle when stopped.
+	var desired_anim := "walk" if dir != Vector2.ZERO else "idle"
+	if anim.animation != desired_anim:
+		anim.play(desired_anim)
 	velocity = dir.normalized() * speed
 	move_and_slide()
 	# Belt-and-suspenders clamp in case the player slips past a wall.

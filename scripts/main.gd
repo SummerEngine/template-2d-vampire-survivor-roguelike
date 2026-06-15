@@ -64,9 +64,14 @@ func _on_enemy_died(enemy) -> void:
 	kills += 1
 	kills_label.text = "Kills: %d" % kills
 	if is_instance_valid(enemy):
-		var gem := GEM_SCENE.instantiate()
-		pickups.add_child(gem)
-		gem.global_position = enemy.global_position
+		# Deferred: enemies die inside a physics collision callback, and adding
+		# an Area2D (the gem) during the physics flush is not allowed.
+		_spawn_gem.call_deferred(enemy.global_position)
+
+func _spawn_gem(pos: Vector2) -> void:
+	var gem := GEM_SCENE.instantiate()
+	pickups.add_child(gem)
+	gem.global_position = pos
 
 func _on_xp_changed(current: int, needed: int, lvl: int) -> void:
 	level_label.text = "Lv %d" % lvl
