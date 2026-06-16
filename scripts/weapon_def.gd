@@ -16,3 +16,5 @@ enum TargetingMode { CLOSEST_ENEMY, RANDOM_DIRECTION }
 @export var projectile_scale: float = 0.06
 @export var projectile_rotation_offset_deg: float = 0.0
 @export var explosion_radius: float = 0.0  # 0 = no explosion on impact
+@export var dies_on_wall: bool = false  # if true: no lifetime, dies/bounces on the world boundary
+@export var bounce_count: int = 0  # wall bounces before dying (only used when dies_on_wall)

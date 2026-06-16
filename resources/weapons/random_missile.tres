@@ -14,3 +14,4 @@ lifetime = 2.0
 projectile_texture = ExtResource("2")
 projectile_scale = 0.04
 projectile_rotation_offset_deg = 0.0
+dies_on_wall = true

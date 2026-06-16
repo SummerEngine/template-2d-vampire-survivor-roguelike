@@ -3,6 +3,8 @@ extends Area2D
 const TURN_RATE: float = 6.0  # radians/sec steering for homing
 const EXPLOSION := preload("res://scripts/explosion.gd")
 const EXPLOSION_DAMAGE_FACTOR: float = 0.5
+const WORLD_HALF: float = 1500.0  # world spans -1500..1500 (matches the boundary walls)
+const WALL_MARGIN: float = 10.0   # reflect just outside the player's max reach (1484)
 
 var direction: Vector2 = Vector2.RIGHT
 var speed: float = 300.0
@@ -12,6 +14,8 @@ var homing: bool = false
 var target: Node2D = null
 var rotation_offset: float = 0.0
 var explosion_radius: float = 0.0
+var dies_on_wall: bool = false
+var bounces_remaining: int = 0
 
 ## Configure from a WeaponDef. Call BEFORE add_child so _ready() sees final
 ## values (lifetime timer, etc.). $Sprite2D resolves on the instanced scene
@@ -25,12 +29,17 @@ func setup(dir: Vector2, tgt: Node2D, weapon: WeaponDef) -> void:
 	target = tgt
 	rotation_offset = deg_to_rad(weapon.projectile_rotation_offset_deg)
 	explosion_radius = weapon.explosion_radius
+	dies_on_wall = weapon.dies_on_wall
+	bounces_remaining = weapon.bounce_count
 	if weapon.projectile_texture != null:
 		$Sprite2D.texture = weapon.projectile_texture
 	$Sprite2D.scale = Vector2(weapon.projectile_scale, weapon.projectile_scale)
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
+	# Wall-bound projectiles never die of old age; they die/bounce on the boundary.
+	if dies_on_wall:
+		return
 	await get_tree().create_timer(lifetime).timeout
 	if is_instance_valid(self):
 		queue_free()
@@ -43,7 +52,37 @@ func _physics_process(delta: float) -> void:
 			var desired := (target.global_position - global_position).normalized()
 			direction = direction.lerp(desired, TURN_RATE * delta).normalized()
 	global_position += direction * speed * delta
+	if dies_on_wall and _handle_wall():
+		return
 	rotation = direction.angle() + rotation_offset
+
+## Reflect off the world boundary; returns true if the projectile was freed.
+func _handle_wall() -> bool:
+	var limit := WORLD_HALF - WALL_MARGIN
+	var bounced := false
+	if global_position.x > limit:
+		global_position.x = limit
+		direction.x = -absf(direction.x)
+		bounced = true
+	elif global_position.x < -limit:
+		global_position.x = -limit
+		direction.x = absf(direction.x)
+		bounced = true
+	if global_position.y > limit:
+		global_position.y = limit
+		direction.y = -absf(direction.y)
+		bounced = true
+	elif global_position.y < -limit:
+		global_position.y = -limit
+		direction.y = absf(direction.y)
+		bounced = true
+	if bounced:
+		if bounces_remaining > 0:
+			bounces_remaining -= 1
+		else:
+			queue_free()
+			return true
+	return false
 
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("enemies"):

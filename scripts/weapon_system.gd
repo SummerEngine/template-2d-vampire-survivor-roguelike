@@ -43,6 +43,12 @@ func add_explosion(homing_flag: bool, base: float, increment: float) -> void:
 			else:
 				w.explosion_radius += increment
 
+## Add wall bounces to matching weapons.
+func increase_bounce(homing_flag: bool, amount: int) -> void:
+	for w in weapons:
+		if w.homing == homing_flag:
+			w.bounce_count += amount
+
 func _process(delta: float) -> void:
 	if projectiles_container == null:
 		return
