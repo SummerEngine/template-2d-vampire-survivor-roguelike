@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemy.gd" id="1"]
-[ext_resource type="SpriteFrames" path="res://resources/player_frames.tres" id="2"]
+[ext_resource type="SpriteFrames" path="res://resources/giant_frames.tres" id="2"]
 [ext_resource type="Shader" path="res://shaders/hit_flash.gdshader" id="3"]
 
 [sub_resource type="CircleShape2D" id="shape"]
@@ -21,10 +21,10 @@ rotates = false
 
 [node name="Visual" type="AnimatedSprite2D" parent="."]
 material = SubResource("flashmat")
-scale = Vector2(0.22, 0.22)
+scale = Vector2(0.2, 0.2)
 sprite_frames = ExtResource("2")
-animation = &"walk_down"
-autoplay = "walk_down"
+animation = &"walk"
+autoplay = "walk"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("shape")

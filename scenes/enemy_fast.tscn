@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemy.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/enemy.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/fast.png" id="2"]
 [ext_resource type="Shader" path="res://shaders/hit_flash.gdshader" id="3"]
 
 [sub_resource type="CircleShape2D" id="shape"]
@@ -15,13 +15,13 @@ shader_parameter/flash = 0.0
 collision_layer = 2
 collision_mask = 4
 script = ExtResource("1")
-speed = 130.0
+speed = 170.0
 max_health = 24.0
 
 [node name="Visual" type="Sprite2D" parent="."]
 material = SubResource("flashmat")
 texture = ExtResource("2")
-scale = Vector2(0.06, 0.06)
+scale = Vector2(0.05, 0.05)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("shape")
