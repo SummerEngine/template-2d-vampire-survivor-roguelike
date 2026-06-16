@@ -6,9 +6,9 @@ extends Control
 signal selected
 signal hover_changed(card: Control, hovered: bool)
 
-@onready var icon: TextureRect = $Panel/Icon
-@onready var title_label: Label = $Panel/Title
-@onready var desc_label: Label = $Panel/Desc
+@onready var icon: TextureRect = $Icon
+@onready var title_label: Label = $Title
+@onready var desc_label: Label = $Desc
 
 func setup(icon_tex: Texture2D, title_text: String, desc_text: String) -> void:
 	if icon_tex != null:
