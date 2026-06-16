@@ -79,6 +79,12 @@ script = ExtResource("5")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=674777950]
 
+[node name="DamageFlash" type="ColorRect" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(1, 0, 0, 1)
+mouse_filter = 2
+
 [node name="HUD" type="Control" parent="UI" unique_id=1046727913]
 layout_mode = 3
 anchors_preset = 15

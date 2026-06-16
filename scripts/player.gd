@@ -2,15 +2,19 @@ extends CharacterBody2D
 
 signal health_changed(current: float, maximum: float)
 signal died
+signal took_damage
 
 @export var speed: float = 200.0
 @export var max_health: float = 100.0
 @export var world_half_size: float = 1500.0  # world spans -1500..1500 on each axis
 @export var body_radius: float = 16.0
 @export var base_regen: float = 2.0  # HP per second, always on
+@export var contact_hit_damage: float = 30.0  # damage per contact instance
+@export var invuln_time: float = 2.0  # i-frames after a hit
 
 var health: float
 var bonus_regen: float = 0.0  # added by level-up upgrades
+var _invuln_timer: float = 0.0
 
 @onready var hurtbox: Area2D = $Hurtbox
 @onready var magnet: Area2D = $Magnet
@@ -51,10 +55,20 @@ func _physics_process(_delta: float) -> void:
 	global_position = global_position.clamp(Vector2(-limit, -limit), Vector2(limit, limit))
 
 func _process(delta: float) -> void:
-	# Contact damage: any enemy overlapping the hurtbox deals damage over time.
-	for b in hurtbox.get_overlapping_bodies():
-		if b.is_in_group("enemies") and "contact_damage" in b:
-			take_damage(b.contact_damage * delta)
+	if _invuln_timer > 0.0:
+		# Invincible: blink the sprite and count down; no contact damage.
+		_invuln_timer -= delta
+		anim.modulate.a = 0.3 if fmod(_invuln_timer, 0.2) < 0.1 else 1.0
+		if _invuln_timer <= 0.0:
+			anim.modulate.a = 1.0
+	elif health > 0.0:
+		# Take one 30-damage instance if any enemy is touching, then go invincible.
+		for b in hurtbox.get_overlapping_bodies():
+			if b.is_in_group("enemies"):
+				take_damage(contact_hit_damage)
+				took_damage.emit()
+				_invuln_timer = invuln_time
+				break
 	# Slow health regeneration (baseline + upgrades), only while alive.
 	if health > 0.0 and health < max_health:
 		health = min(max_health, health + (base_regen + bonus_regen) * delta)

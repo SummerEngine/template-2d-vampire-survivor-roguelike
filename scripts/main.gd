@@ -31,6 +31,7 @@ const UPGRADES := [
 @onready var game_over_panel: Control = $UI/GameOverPanel
 @onready var result_label: Label = $UI/GameOverPanel/ResultLabel
 @onready var level_up_panel: Control = $UI/LevelUpPanel
+@onready var damage_flash: ColorRect = $UI/DamageFlash
 @onready var option_buttons: Array[Button] = [
 	$UI/LevelUpPanel/VBox/Option0,
 	$UI/LevelUpPanel/VBox/Option1,
@@ -50,6 +51,8 @@ func _ready() -> void:
 	weapon_system.setup(projectiles)
 	player.health_changed.connect(_on_player_health_changed)
 	player.died.connect(_on_player_died)
+	player.took_damage.connect(_on_player_took_damage)
+	damage_flash.modulate.a = 0.0
 	enemies.child_entered_tree.connect(_on_enemy_added)
 	level_system.xp_changed.connect(_on_xp_changed)
 	level_system.leveled_up.connect(_on_leveled_up)
@@ -137,6 +140,11 @@ func _resolve_choice() -> void:
 		return  # keep the panel up for the next queued level-up
 	level_up_panel.visible = false
 	get_tree().paused = false
+
+func _on_player_took_damage() -> void:
+	damage_flash.modulate.a = 0.5
+	var tw := create_tween()
+	tw.tween_property(damage_flash, "modulate:a", 0.0, 0.3)
 
 func _on_player_health_changed(current: float, maximum: float) -> void:
 	health_label.text = "HP: %d / %d" % [int(ceil(current)), int(maximum)]
