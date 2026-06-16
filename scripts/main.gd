@@ -13,6 +13,7 @@ const UPGRADES := [
 	{"id": "explode", "label": "Explosive Missiles", "desc": "Arrows explode on impact; blast grows each pick.", "icon": "res://assets/icons/explode.png"},
 	{"id": "bounce", "label": "Bouncing Missiles", "desc": "Arrows bounce off walls one more time.", "icon": "res://assets/icons/bounce.png"},
 	{"id": "saw", "label": "Spinning Saw", "desc": "Adds a saw blade that orbits you and shreds enemies it touches.", "icon": "res://assets/icons/saw.png"},
+	{"id": "lightning", "label": "Storm Caller", "desc": "Lightning strikes a random enemy every 5s for massive damage. Stacks: +1 bolt per pick.", "icon": "res://assets/icons/lightning.png"},
 ]
 
 @onready var player: CharacterBody2D = $Player
@@ -23,6 +24,7 @@ const UPGRADES := [
 @onready var weapon_system: Node = $Player/WeaponSystem
 @onready var saw_system: Node = $Player/SawSystem
 @onready var level_system: Node = $LevelSystem
+@onready var lightning_system: Node = $LightningSystem
 
 @onready var health_label: Label = $UI/HUD/HealthLabel
 @onready var health_bar: ProgressBar = $UI/HUD/HealthBar
@@ -52,6 +54,7 @@ func _ready() -> void:
 	level_up_panel.visible = false
 	spawner.setup(player, enemies)
 	weapon_system.setup(projectiles)
+	lightning_system.setup(self)
 	player.health_changed.connect(_on_player_health_changed)
 	player.died.connect(_on_player_died)
 	player.took_damage.connect(_on_player_took_damage)
@@ -109,6 +112,8 @@ func _on_xp_changed(current: int, needed: int, lvl: int) -> void:
 func _on_leveled_up(_lvl: int) -> void:
 	# Ramp difficulty: enemies spawn slightly more often each level.
 	spawner.increase_spawn_rate(0.92)
+	# Vacuum every XP gem on the map toward the player.
+	get_tree().call_group("xp_gems", "attract_to", player)
 	_pending_levelups += 1
 	if not level_up_panel.visible:
 		_show_levelup()
@@ -154,6 +159,8 @@ func _apply_upgrade(id: String) -> void:
 			weapon_system.increase_bounce(false, 1)
 		"saw":
 			saw_system.add_saw()
+		"lightning":
+			lightning_system.enable()
 
 func _resolve_choice() -> void:
 	_pending_levelups -= 1
