@@ -33,6 +33,16 @@ func scale_fire_rate(homing_flag: bool, factor: float) -> void:
 		if w.homing == homing_flag:
 			w.fire_rate *= factor
 
+## Enable/grow explosion radius on matching weapons. First call sets `base`,
+## later calls add `increment`.
+func add_explosion(homing_flag: bool, base: float, increment: float) -> void:
+	for w in weapons:
+		if w.homing == homing_flag:
+			if w.explosion_radius <= 0.0:
+				w.explosion_radius = base
+			else:
+				w.explosion_radius += increment
+
 func _process(delta: float) -> void:
 	if projectiles_container == null:
 		return

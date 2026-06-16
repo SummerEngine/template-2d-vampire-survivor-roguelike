@@ -1,5 +1,9 @@
 extends Area2D
 
+const TURN_RATE: float = 6.0  # radians/sec steering for homing
+const EXPLOSION := preload("res://scripts/explosion.gd")
+const EXPLOSION_DAMAGE_FACTOR: float = 0.5
+
 var direction: Vector2 = Vector2.RIGHT
 var speed: float = 300.0
 var damage: float = 30.0
@@ -7,8 +11,7 @@ var lifetime: float = 2.0
 var homing: bool = false
 var target: Node2D = null
 var rotation_offset: float = 0.0
-
-const TURN_RATE: float = 6.0  # radians/sec steering for homing
+var explosion_radius: float = 0.0
 
 ## Configure from a WeaponDef. Call BEFORE add_child so _ready() sees final
 ## values (lifetime timer, etc.). $Sprite2D resolves on the instanced scene
@@ -21,6 +24,7 @@ func setup(dir: Vector2, tgt: Node2D, weapon: WeaponDef) -> void:
 	homing = weapon.homing
 	target = tgt
 	rotation_offset = deg_to_rad(weapon.projectile_rotation_offset_deg)
+	explosion_radius = weapon.explosion_radius
 	if weapon.projectile_texture != null:
 		$Sprite2D.texture = weapon.projectile_texture
 	$Sprite2D.scale = Vector2(weapon.projectile_scale, weapon.projectile_scale)
@@ -45,4 +49,8 @@ func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("enemies"):
 		if body.has_method("take_damage"):
 			body.take_damage(damage)
+		if explosion_radius > 0.0:
+			var ex := EXPLOSION.new()
+			get_parent().add_child(ex)
+			ex.detonate(global_position, explosion_radius, damage * EXPLOSION_DAMAGE_FACTOR)
 		queue_free()

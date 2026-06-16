@@ -10,6 +10,7 @@ const UPGRADES := [
 	{"id": "maxhp", "label": "+50 Max HP"},
 	{"id": "xprate", "label": "+1 XP per second"},
 	{"id": "regen", "label": "Faster Health Regen"},
+	{"id": "explode", "label": "Explosive Missiles (bigger blast)"},
 ]
 
 @onready var player: CharacterBody2D = $Player
@@ -124,6 +125,8 @@ func _apply_upgrade(id: String) -> void:
 			level_system.add_xp_rate(1.0)
 		"regen":
 			player.add_regen(1.5)
+		"explode":
+			weapon_system.add_explosion(false, 60.0, 30.0)
 
 func _resolve_choice() -> void:
 	_pending_levelups -= 1
