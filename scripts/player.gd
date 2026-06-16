@@ -31,8 +31,17 @@ func _physics_process(_delta: float) -> void:
 	if Input.is_physical_key_pressed(KEY_S): dir.y += 1.0
 	if Input.is_physical_key_pressed(KEY_A): dir.x -= 1.0
 	if Input.is_physical_key_pressed(KEY_D): dir.x += 1.0
-	# Play the walk cycle while moving, idle when stopped.
-	var desired_anim := "walk" if dir != Vector2.ZERO else "idle"
+	# Pick a directional walk animation by dominant axis (idle when stopped).
+	var desired_anim := "idle"
+	if dir != Vector2.ZERO:
+		if abs(dir.x) > abs(dir.y):
+			desired_anim = "walk_right"
+			anim.flip_h = dir.x < 0.0  # mirror the right set for leftward movement
+		else:
+			anim.flip_h = false
+			desired_anim = "walk_down" if dir.y > 0.0 else "walk_up"
+	else:
+		anim.flip_h = false
 	if anim.animation != desired_anim:
 		anim.play(desired_anim)
 	velocity = dir.normalized() * speed
