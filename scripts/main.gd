@@ -67,6 +67,12 @@ func _ready() -> void:
 	kills_label.text = "Kills: 0"
 	_update_time()
 
+func _input(event: InputEvent) -> void:
+	# Debug: press L to force a level-up (shows the reward cards).
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
+		if not is_game_over:
+			level_system.debug_level_up()
+
 func _process(delta: float) -> void:
 	if is_game_over:
 		if Input.is_physical_key_pressed(KEY_R):

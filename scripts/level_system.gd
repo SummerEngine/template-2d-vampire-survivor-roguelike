@@ -27,6 +27,10 @@ func _process(delta: float) -> void:
 func add_xp_rate(amount: float) -> void:
 	xp_per_sec += amount
 
+## Debug: grant just enough XP to trigger one level-up.
+func debug_level_up() -> void:
+	add_xp(maxi(1, xp_to_next - xp))
+
 func add_xp(amount: int) -> void:
 	xp += amount
 	while xp >= xp_to_next:
