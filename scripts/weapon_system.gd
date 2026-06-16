@@ -10,12 +10,13 @@ func setup(container: Node2D) -> void:
 	projectiles_container = container
 
 func _ready() -> void:
-	# Self-wire defaults so the system works without editor-set exports.
-	if weapons.is_empty():
-		weapons = [
-			preload("res://resources/weapons/homing_missile.tres"),
-			preload("res://resources/weapons/random_missile.tres"),
-		]
+	# TEMP (saw testing): homing orb + random missile disabled. Restore by
+	# un-commenting the block below so the player auto-fires again.
+	#if weapons.is_empty():
+	#	weapons = [
+	#		preload("res://resources/weapons/homing_missile.tres"),
+	#		preload("res://resources/weapons/random_missile.tres"),
+	#	]
 	if projectile_scene == null:
 		projectile_scene = preload("res://scenes/projectile.tscn")
 	# Duplicate the WeaponDefs so runtime upgrades don't mutate the shared
