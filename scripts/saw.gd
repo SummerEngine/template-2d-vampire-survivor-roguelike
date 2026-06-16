@@ -26,9 +26,9 @@ func _physics_process(delta: float) -> void:
 	rotation += SPIN_SPEED * delta
 	var dmg := damage_per_sec * delta
 	for b in get_overlapping_bodies():
-		if b.is_in_group("enemies") and b.has_method("take_damage"):
-			# Vector2.INF + show_feedback=false: no knockback, no number spam.
-			b.take_damage(dmg, Vector2.INF, false)
+		if b.is_in_group("enemies") and b.has_method("take_damage_continuous"):
+			# Accumulates damage; enemy pops a number ~every 0.3s. No knockback.
+			b.take_damage_continuous(dmg)
 
 func _draw() -> void:
 	var r := 18.0

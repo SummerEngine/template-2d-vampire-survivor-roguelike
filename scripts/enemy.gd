@@ -6,6 +6,7 @@ const DAMAGE_NUMBER := preload("res://scripts/damage_number.gd")
 const DEATH_BURST := preload("res://scripts/death_burst.gd")
 const KNOCK_STRENGTH: float = 260.0
 const KNOCK_DECAY: float = 900.0  # how fast the jut fades (units/sec)
+const DOT_NUMBER_INTERVAL: float = 0.3  # pop an accumulated number this often for continuous damage
 
 @export var speed: float = 80.0
 @export var max_health: float = 30.0
@@ -16,6 +17,8 @@ const KNOCK_DECAY: float = 900.0  # how fast the jut fades (units/sec)
 var health: float
 var target: Node2D
 var _knockback: Vector2 = Vector2.ZERO
+var _dot_accum: float = 0.0   # continuous damage waiting to be shown as a number
+var _dot_timer: float = 0.0
 
 func _ready() -> void:
 	health = max_health
@@ -25,6 +28,14 @@ func _ready() -> void:
 		sprite.material = sprite.material.duplicate()
 
 func _physics_process(delta: float) -> void:
+	# Pop an accumulated damage number periodically for continuous (saw) damage.
+	if _dot_accum > 0.0:
+		_dot_timer += delta
+		if _dot_timer >= DOT_NUMBER_INTERVAL:
+			_dot_timer = 0.0
+			_spawn_damage_number(_dot_accum)
+			_flash()
+			_dot_accum = 0.0
 	if not is_instance_valid(target):
 		return
 	var dir := (target.global_position - global_position).normalized()
@@ -34,18 +45,30 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_knockback = _knockback.move_toward(Vector2.ZERO, KNOCK_DECAY * delta)
 
-func take_damage(amount: float, from_pos: Vector2 = Vector2.INF, show_feedback: bool = true) -> void:
+func take_damage(amount: float, from_pos: Vector2 = Vector2.INF) -> void:
 	if health <= 0.0:
 		return
 	health -= amount
-	if show_feedback:
-		_spawn_damage_number(amount)
-		_flash()
-		if from_pos != Vector2.INF:
-			var away := global_position - from_pos
-			if away.length() > 0.01:
-				_knockback = away.normalized() * KNOCK_STRENGTH
+	_spawn_damage_number(amount)
+	_flash()
+	if from_pos != Vector2.INF:
+		var away := global_position - from_pos
+		if away.length() > 0.01:
+			_knockback = away.normalized() * KNOCK_STRENGTH
 	if health <= 0.0:
+		_spawn_death_burst()
+		died.emit(self)
+		queue_free()
+
+## Continuous damage (saws): accumulate for a periodic number, no knockback.
+func take_damage_continuous(amount: float) -> void:
+	if health <= 0.0:
+		return
+	health -= amount
+	_dot_accum += amount
+	if health <= 0.0:
+		if _dot_accum > 0.0:
+			_spawn_damage_number(_dot_accum)
 		_spawn_death_burst()
 		died.emit(self)
 		queue_free()
