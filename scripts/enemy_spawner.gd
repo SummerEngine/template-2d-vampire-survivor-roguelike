@@ -40,5 +40,8 @@ func _spawn() -> void:
 	pos = pos.clamp(Vector2(-limit, -limit), Vector2(limit, limit))
 	var enemy := enemy_scene.instantiate()
 	enemy.target = player
+	# Position BEFORE adding to the tree so the enemy never registers at the
+	# world origin (where the player starts) and hits the player on spawn.
+	# Enemies container sits at the origin, so local position == world position.
+	enemy.position = pos
 	enemies_container.add_child(enemy)
-	enemy.global_position = pos
