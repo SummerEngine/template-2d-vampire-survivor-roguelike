@@ -18,7 +18,6 @@ func configure(p_radius: float, p_angle: float, p_speed: float, p_dps: float) ->
 	orbit_speed = p_speed
 	damage_per_sec = p_dps
 	position = Vector2.from_angle(angle) * orbit_radius
-	queue_redraw()
 
 func _physics_process(delta: float) -> void:
 	angle += orbit_speed * delta
@@ -29,19 +28,3 @@ func _physics_process(delta: float) -> void:
 		if b.is_in_group("enemies") and b.has_method("take_damage_continuous"):
 			# Accumulates damage; enemy pops a number ~every 0.3s. No knockback.
 			b.take_damage_continuous(dmg)
-
-func _draw() -> void:
-	var r := 18.0
-	var teeth := 10
-	for i in teeth:
-		var a0 := float(i) / teeth * TAU
-		var a1 := (float(i) + 0.5) / teeth * TAU
-		var a2 := (float(i) + 1.0) / teeth * TAU
-		draw_colored_polygon(PackedVector2Array([
-			Vector2.from_angle(a0) * (r * 0.78),
-			Vector2.from_angle(a1) * r,
-			Vector2.from_angle(a2) * (r * 0.78),
-		]), Color(0.5, 0.52, 0.58))
-	draw_circle(Vector2.ZERO, r * 0.8, Color(0.74, 0.76, 0.82))
-	draw_circle(Vector2.ZERO, r * 0.5, Color(0.58, 0.6, 0.66))
-	draw_circle(Vector2.ZERO, 5.0, Color(0.25, 0.26, 0.3))
