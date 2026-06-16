@@ -9,9 +9,10 @@ const KNOCK_DECAY: float = 900.0  # how fast the jut fades (units/sec)
 
 @export var speed: float = 80.0
 @export var max_health: float = 30.0
-@export var contact_damage: float = 20.0  # per second while touching the player
+@export var contact_damage: float = 20.0  # (unused now; player takes a flat hit) kept for compat
+@export var rotates: bool = true  # true: face movement (bats); false: stay upright + walk anim (giant)
 
-@onready var sprite: Sprite2D = $Sprite2D
+@onready var visual: CanvasItem = $Visual
 
 var health: float
 var target: Node2D
@@ -21,15 +22,16 @@ func _ready() -> void:
 	health = max_health
 	add_to_group("enemies")
 	# Own copy of the flash material so each enemy flashes independently.
-	if sprite.material != null:
-		sprite.material = sprite.material.duplicate()
+	if visual.material != null:
+		visual.material = visual.material.duplicate()
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(target):
 		return
 	var dir := (target.global_position - global_position).normalized()
-	# Rotate to face the player (bat sprite points up, so +90 deg).
-	rotation = dir.angle() + PI / 2.0
+	if rotates:
+		# Face the player (bat sprite points up, so +90 deg).
+		rotation = dir.angle() + PI / 2.0
 	velocity = dir * speed + _knockback
 	move_and_slide()
 	_knockback = _knockback.move_toward(Vector2.ZERO, KNOCK_DECAY * delta)
@@ -50,15 +52,15 @@ func take_damage(amount: float, from_pos: Vector2 = Vector2.INF) -> void:
 		queue_free()
 
 func _flash() -> void:
-	if sprite.material == null:
+	if visual.material == null:
 		return
-	sprite.material.set_shader_parameter("flash", 1.0)
+	visual.material.set_shader_parameter("flash", 1.0)
 	var tw := create_tween()
 	tw.tween_method(_set_flash, 1.0, 0.0, 0.12)
 
 func _set_flash(v: float) -> void:
-	if sprite.material != null:
-		sprite.material.set_shader_parameter("flash", v)
+	if visual.material != null:
+		visual.material.set_shader_parameter("flash", v)
 
 func _spawn_damage_number(amount: float) -> void:
 	var num := DAMAGE_NUMBER.new()

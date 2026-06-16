@@ -5,16 +5,14 @@ extends Node
 @export var min_spawn_distance: float = 600.0
 @export var max_spawn_distance: float = 1000.0
 @export var world_half_size: float = 1500.0
-@export var enemy_scene: PackedScene
+
+const NORMAL := preload("res://scenes/enemy.tscn")
+const FAST := preload("res://scenes/enemy_fast.tscn")
+const GIANT := preload("res://scenes/enemy_giant.tscn")
 
 var player: Node2D
 var enemies_container: Node2D
 var _timer: float = 0.0
-
-func _ready() -> void:
-	# Self-wire default so the spawner works without an editor-set export.
-	if enemy_scene == null:
-		enemy_scene = preload("res://scenes/enemy.tscn")
 
 func setup(p: Node2D, container: Node2D) -> void:
 	player = p
@@ -32,16 +30,24 @@ func _process(delta: float) -> void:
 		_timer -= spawn_interval
 		_spawn()
 
+## 10% giant, 25% fast, 65% normal.
+func _pick_scene() -> PackedScene:
+	var r := randf()
+	if r < 0.10:
+		return GIANT
+	if r < 0.35:
+		return FAST
+	return NORMAL
+
 func _spawn() -> void:
 	var angle := randf() * TAU
 	var dist := randf_range(min_spawn_distance, max_spawn_distance)
 	var pos := player.global_position + Vector2(cos(angle), sin(angle)) * dist
 	var limit := world_half_size - 32.0
 	pos = pos.clamp(Vector2(-limit, -limit), Vector2(limit, limit))
-	var enemy := enemy_scene.instantiate()
+	var enemy := _pick_scene().instantiate()
 	enemy.target = player
 	# Position BEFORE adding to the tree so the enemy never registers at the
 	# world origin (where the player starts) and hits the player on spawn.
-	# Enemies container sits at the origin, so local position == world position.
 	enemy.position = pos
 	enemies_container.add_child(enemy)
