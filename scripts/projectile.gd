@@ -87,7 +87,7 @@ func _handle_wall() -> bool:
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("enemies"):
 		if body.has_method("take_damage"):
-			body.take_damage(damage)
+			body.take_damage(damage, global_position)
 		if explosion_radius > 0.0:
 			var ex := EXPLOSION.new()
 			get_parent().add_child(ex)

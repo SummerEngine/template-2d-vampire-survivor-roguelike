@@ -13,7 +13,7 @@ func detonate(pos: Vector2, radius: float, damage: float) -> void:
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if is_instance_valid(e) and global_position.distance_to(e.global_position) <= radius:
 			if e.has_method("take_damage"):
-				e.take_damage(damage)
+				e.take_damage(damage, global_position)
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_method(_set_radius, radius * 0.3, radius, 0.15)
