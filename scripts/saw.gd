@@ -1,16 +1,17 @@
 extends Area2D
 
-## A saw blade that orbits the player and deals continuous contact damage to
-## enemies it overlaps. Damage is applied EVERY frame (no tick sampling, so it
-## never misses a fast sweep past an enemy) and uses a feedback-free hit (no
-## knockback, no damage numbers) since it hits constantly. Drawn procedurally.
+## A saw blade that orbits the player and damages enemies it overlaps. Deals
+## damage + a number + flash every FEEDBACK_FRAMES frames (no knockback) for a
+## steady stream of hit numbers.
 
 const SPIN_SPEED: float = 12.0  # visual blade spin, rad/sec
+const FEEDBACK_FRAMES: int = 2  # hit (damage + number + flash) every N frames
 
 var orbit_radius: float = 70.0
 var angle: float = 0.0
 var orbit_speed: float = 3.0        # rad/sec around the player
-var damage_per_sec: float = 50.0    # continuous DPS to overlapping enemies
+var damage_per_sec: float = 50.0    # DPS to overlapping enemies
+var _fcount: int = 0
 
 func configure(p_radius: float, p_angle: float, p_speed: float, p_dps: float) -> void:
 	orbit_radius = p_radius
@@ -23,8 +24,11 @@ func _physics_process(delta: float) -> void:
 	angle += orbit_speed * delta
 	position = Vector2.from_angle(angle) * orbit_radius
 	rotation += SPIN_SPEED * delta
-	var dmg := damage_per_sec * delta
+	_fcount += 1
+	if _fcount % FEEDBACK_FRAMES != 0:
+		return
+	var dmg := damage_per_sec * delta * FEEDBACK_FRAMES
 	for b in get_overlapping_bodies():
-		if b.is_in_group("enemies") and b.has_method("take_damage_continuous"):
-			# Accumulates damage; enemy pops a number ~every 0.3s. No knockback.
-			b.take_damage_continuous(dmg)
+		if b.is_in_group("enemies") and b.has_method("take_damage"):
+			# Vector2.INF -> no knockback; shows a damage number + flash each hit.
+			b.take_damage(dmg, Vector2.INF)
