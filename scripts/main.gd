@@ -12,6 +12,7 @@ const UPGRADES := [
 	{"id": "regen", "label": "Health Regen", "desc": "Regenerate +1.5 HP every second.", "icon": "res://assets/icons/regen.png"},
 	{"id": "explode", "label": "Explosive Missiles", "desc": "Arrows explode on impact; blast grows each pick.", "icon": "res://assets/icons/explode.png"},
 	{"id": "bounce", "label": "Bouncing Missiles", "desc": "Arrows bounce off walls one more time.", "icon": "res://assets/icons/bounce.png"},
+	{"id": "saw", "label": "Spinning Saw", "desc": "Adds a saw blade that orbits you and shreds enemies it touches.", "icon": "res://assets/icons/saw.png"},
 ]
 
 @onready var player: CharacterBody2D = $Player
@@ -20,6 +21,7 @@ const UPGRADES := [
 @onready var projectiles: Node2D = $Projectiles
 @onready var pickups: Node2D = $Pickups
 @onready var weapon_system: Node = $Player/WeaponSystem
+@onready var saw_system: Node = $Player/SawSystem
 @onready var level_system: Node = $LevelSystem
 
 @onready var health_label: Label = $UI/HUD/HealthLabel
@@ -144,6 +146,8 @@ func _apply_upgrade(id: String) -> void:
 			weapon_system.add_explosion(false, 60.0, 30.0)
 		"bounce":
 			weapon_system.increase_bounce(false, 1)
+		"saw":
+			saw_system.add_saw()
 
 func _resolve_choice() -> void:
 	_pending_levelups -= 1

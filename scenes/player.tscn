@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/weapon_system.gd" id="2"]
 [ext_resource type="SpriteFrames" path="res://resources/player_frames.tres" id="3"]
+[ext_resource type="Script" path="res://scripts/saw_system.gd" id="4"]
 
 [sub_resource type="CircleShape2D" id="body"]
 radius = 16.0
@@ -45,3 +46,6 @@ shape = SubResource("magnet")
 
 [node name="WeaponSystem" type="Node" parent="."]
 script = ExtResource("2")
+
+[node name="SawSystem" type="Node2D" parent="."]
+script = ExtResource("4")
