@@ -34,16 +34,17 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_knockback = _knockback.move_toward(Vector2.ZERO, KNOCK_DECAY * delta)
 
-func take_damage(amount: float, from_pos: Vector2 = Vector2.INF) -> void:
+func take_damage(amount: float, from_pos: Vector2 = Vector2.INF, show_feedback: bool = true) -> void:
 	if health <= 0.0:
 		return
 	health -= amount
-	_spawn_damage_number(amount)
-	_flash()
-	if from_pos != Vector2.INF:
-		var away := global_position - from_pos
-		if away.length() > 0.01:
-			_knockback = away.normalized() * KNOCK_STRENGTH
+	if show_feedback:
+		_spawn_damage_number(amount)
+		_flash()
+		if from_pos != Vector2.INF:
+			var away := global_position - from_pos
+			if away.length() > 0.01:
+				_knockback = away.normalized() * KNOCK_STRENGTH
 	if health <= 0.0:
 		_spawn_death_burst()
 		died.emit(self)
