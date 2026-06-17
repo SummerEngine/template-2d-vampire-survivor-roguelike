@@ -28,6 +28,7 @@ func _gui_input(event: InputEvent) -> void:
 func _on_enter() -> void:
 	pivot_offset = size / 2.0
 	_tween_scale(1.1)
+	Sfx.play("ui_hover")
 	hover_changed.emit(self, true)
 
 func _on_exit() -> void:

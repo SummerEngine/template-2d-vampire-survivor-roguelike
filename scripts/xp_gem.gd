@@ -22,4 +22,5 @@ func _physics_process(delta: float) -> void:
 	global_position = global_position.move_toward(_target.global_position, fly_speed * delta)
 	if global_position.distance_to(_target.global_position) <= COLLECT_DIST:
 		get_tree().call_group("level_system", "add_xp", xp_value)
+		get_tree().call_group("xp_sfx", "play")
 		queue_free()

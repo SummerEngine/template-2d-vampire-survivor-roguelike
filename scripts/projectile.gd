@@ -37,8 +37,10 @@ func setup(dir: Vector2, tgt: Node2D, weapon: WeaponDef) -> void:
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
-	# Wall-bound projectiles never die of old age; they die/bounce on the boundary.
-	if dies_on_wall:
+	# Finite-bounce wall projectiles die when their bounces run out, not by time.
+	# Infinite-bounce ones (bounces_remaining < 0) keep a lifetime so they don't
+	# accumulate on screen forever.
+	if dies_on_wall and bounces_remaining >= 0:
 		return
 	await get_tree().create_timer(lifetime).timeout
 	if is_instance_valid(self):
@@ -77,7 +79,9 @@ func _handle_wall() -> bool:
 		direction.y = absf(direction.y)
 		bounced = true
 	if bounced:
-		if bounces_remaining > 0:
+		if bounces_remaining < 0:
+			pass  # infinite bounce: never expire on walls (despawns by lifetime)
+		elif bounces_remaining > 0:
 			bounces_remaining -= 1
 		else:
 			queue_free()
@@ -88,7 +92,9 @@ func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("enemies"):
 		if body.has_method("take_damage"):
 			body.take_damage(damage, global_position)
+		Sfx.play("enemy_hit", 0.0, 25)
 		if explosion_radius > 0.0:
+			Sfx.play("explosion")
 			var ex := EXPLOSION.new()
 			get_parent().add_child(ex)
 			ex.detonate(global_position, explosion_radius, damage * EXPLOSION_DAMAGE_FACTOR)

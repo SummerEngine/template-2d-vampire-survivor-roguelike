@@ -49,6 +49,14 @@ func increase_bounce(homing_flag: bool, amount: int) -> void:
 		if w.homing == homing_flag:
 			w.bounce_count += amount
 
+## Make matching weapons bounce forever. bounce_count < 0 means infinite; a
+## lifetime is set so these projectiles still despawn by time, not pile up.
+func set_infinite_bounce(homing_flag: bool) -> void:
+	for w in weapons:
+		if w.homing == homing_flag:
+			w.bounce_count = -1
+			w.lifetime = 30.0  # safety despawn only; normally the arrow hits an enemy first
+
 func _process(delta: float) -> void:
 	if projectiles_container == null:
 		return
@@ -75,3 +83,4 @@ func _fire(weapon: WeaponDef) -> void:
 	proj.setup(dir, target, weapon)
 	projectiles_container.add_child(proj)
 	proj.global_position = origin
+	Sfx.play("orb_cast" if weapon.homing else "arrow_shoot")

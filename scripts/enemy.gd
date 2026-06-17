@@ -9,7 +9,7 @@ const KNOCK_DECAY: float = 900.0  # how fast the jut fades (units/sec)
 
 @export var speed: float = 80.0
 @export var max_health: float = 30.0
-@export var contact_damage: float = 20.0  # (unused now; player takes a flat hit) kept for compat
+@export var contact_damage: float = 30.0  # damage dealt to the player on contact
 @export var rotates: bool = true  # true: face movement (bats); false: stay upright + walk anim (giant)
 
 @onready var visual: CanvasItem = $Visual
@@ -47,6 +47,7 @@ func take_damage(amount: float, from_pos: Vector2 = Vector2.INF) -> void:
 		if away.length() > 0.01:
 			_knockback = away.normalized() * KNOCK_STRENGTH
 	if health <= 0.0:
+		Sfx.play("enemy_death", 0.0, 40)
 		_spawn_death_burst()
 		died.emit(self)
 		queue_free()

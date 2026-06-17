@@ -8,6 +8,16 @@
 [ext_resource type="Texture2D" uid="uid://bjnhx0cu4ttof" path="res://assets/stone.png" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/card.tscn" id="7"]
 [ext_resource type="Script" uid="uid://dtmx7hgkwrsmf" path="res://scripts/lightning_system.gd" id="8"]
+[ext_resource type="Script" uid="uid://bal2mlkk772ox" path="res://scripts/boss_system.gd" id="boss_sys"]
+[ext_resource type="Texture2D" uid="uid://bv5d4gfxpko80" path="res://assets/death_splash.png" id="go_splash"]
+[ext_resource type="Texture2D" uid="uid://8yba3xhqywx3" path="res://assets/death_title.png" id="go_title"]
+[ext_resource type="Texture2D" uid="uid://q0r1wi3fac1s" path="res://assets/levelup_title.png" id="lvl_title"]
+[ext_resource type="AudioStream" uid="uid://b0fi61skxr6ex" path="res://assets/sounds/music_combat.mp3" id="music"]
+[ext_resource type="Script" uid="uid://cg27hswm470ey" path="res://scripts/music_loop.gd" id="music_loop"]
+[ext_resource type="AudioStream" uid="uid://c7xf2o26thbcq" path="res://assets/sounds/pitched.mp3" id="sfx_level"]
+[ext_resource type="AudioStream" uid="uid://reqn1rtgqlg4" path="res://assets/sounds/pling.mp3" id="sfx_pling"]
+[ext_resource type="AudioStream" uid="uid://btu3u31jer07o" path="res://assets/sounds/boss_roar.mp3" id="sfx_roar"]
+[ext_resource type="AudioStream" uid="uid://bxpgain0sfx01" path="res://assets/sounds/xp_gain.mp3" id="sfx_xp"]
 
 [sub_resource type="RectangleShape2D" id="h_wall"]
 size = Vector2(3200, 40)
@@ -20,6 +30,12 @@ bg_color = Color(0.1, 0.1, 0.1, 0.6)
 
 [sub_resource type="StyleBoxFlat" id="hp_fill"]
 bg_color = Color(0.85, 0.18, 0.18, 1)
+
+[sub_resource type="StyleBoxFlat" id="boss_bg"]
+bg_color = Color(0.08, 0.05, 0.12, 0.7)
+
+[sub_resource type="StyleBoxFlat" id="boss_fill"]
+bg_color = Color(0.62, 0.22, 0.85, 1)
 
 [node name="Game" type="Node2D" unique_id=64589296]
 process_mode = 3
@@ -84,6 +100,32 @@ script = ExtResource("5")
 process_mode = 1
 script = ExtResource("8")
 
+[node name="BossSystem" type="Node" parent="." unique_id=864546248]
+process_mode = 1
+script = ExtResource("boss_sys")
+
+[node name="Sounds" type="Node" parent="." unique_id=771204418]
+process_mode = 3
+
+[node name="XPSound" type="AudioStreamPlayer" parent="Sounds" unique_id=771204419]
+stream = ExtResource("sfx_pling")
+volume_db = -4.0
+
+[node name="LevelSound" type="AudioStreamPlayer" parent="Sounds" unique_id=771204420]
+stream = ExtResource("sfx_level")
+
+[node name="UpgradeSound" type="AudioStreamPlayer" parent="Sounds" unique_id=771204421]
+stream = ExtResource("sfx_xp")
+
+[node name="Music" type="AudioStreamPlayer" parent="Sounds" unique_id=1998544069]
+stream = ExtResource("music")
+volume_db = -10.0
+autoplay = true
+script = ExtResource("music_loop")
+
+[node name="RoarSound" type="AudioStreamPlayer" parent="Sounds" unique_id=1998544070]
+stream = ExtResource("sfx_roar")
+
 [node name="UI" type="CanvasLayer" parent="." unique_id=674777950]
 
 [node name="DamageFlash" type="ColorRect" parent="UI" unique_id=556730139]
@@ -101,14 +143,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HealthLabel" type="Label" parent="UI/HUD" unique_id=405767232]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 40.0
-offset_right = 300.0
-offset_bottom = 64.0
-text = "HP"
-
 [node name="KillsLabel" type="Label" parent="UI/HUD" unique_id=1861085323]
 layout_mode = 0
 offset_left = 16.0
@@ -124,14 +158,6 @@ offset_top = 96.0
 offset_right = 300.0
 offset_bottom = 120.0
 text = "Time: 0.0s"
-
-[node name="LevelLabel" type="Label" parent="UI/HUD" unique_id=1045775774]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 124.0
-offset_right = 300.0
-offset_bottom = 148.0
-text = "Lv 1"
 
 [node name="XPBar" type="ProgressBar" parent="UI/HUD" unique_id=227214850]
 layout_mode = 0
@@ -149,6 +175,81 @@ theme_override_styles/fill = SubResource("hp_fill")
 value = 100.0
 show_percentage = false
 
+[node name="LevelLabel" type="Label" parent="UI/HUD" unique_id=1045775774]
+layout_mode = 0
+anchor_right = 1.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+text = "Lv 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HealthLabel" type="Label" parent="UI/HUD" unique_id=405767232]
+layout_mode = 0
+anchor_right = 1.0
+offset_top = 16.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+text = "HP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BossBar" type="ProgressBar" parent="UI/HUD" unique_id=1990014411]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 44.0
+offset_right = 320.0
+offset_bottom = 66.0
+grow_horizontal = 2
+theme_override_styles/background = SubResource("boss_bg")
+theme_override_styles/fill = SubResource("boss_fill")
+max_value = 3000.0
+value = 3000.0
+show_percentage = false
+
+[node name="BossLabel" type="Label" parent="UI/HUD/BossBar" unique_id=1990014412]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.92, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+text = "BOSS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BossWarning" type="Label" parent="UI" unique_id=1990014420]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 150.0
+offset_right = 400.0
+offset_bottom = 230.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.25, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 56
+text = "⚠  BOSS  ⚠"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="GameOverPanel" type="Control" parent="UI" unique_id=1735243368]
 layout_mode = 3
 anchors_preset = 15
@@ -157,33 +258,81 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Background" type="ColorRect" parent="UI/GameOverPanel" unique_id=970224384]
-layout_mode = 0
+[node name="Splash" type="TextureRect" parent="UI/GameOverPanel" unique_id=975175148]
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.6)
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("go_splash")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Darken" type="ColorRect" parent="UI/GameOverPanel" unique_id=767266595]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="DeathTitle" type="TextureRect" parent="UI/GameOverPanel" unique_id=1464760610]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 36.0
+offset_bottom = 250.0
+grow_horizontal = 2
+texture = ExtResource("go_title")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="ResultLabel" type="Label" parent="UI/GameOverPanel" unique_id=1632720635]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -220.0
+offset_bottom = -140.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.92, 0.89, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 30
 text = "GAME OVER"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MainMenuButton" type="Button" parent="UI/GameOverPanel" unique_id=519102213]
+[node name="Buttons" type="HBoxContainer" parent="UI/GameOverPanel" unique_id=290522930]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -110.0
-offset_top = -110.0
-offset_right = 110.0
-offset_bottom = -60.0
+offset_left = -250.0
+offset_top = -120.0
+offset_right = 250.0
+offset_bottom = -55.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="RestartButton" type="Button" parent="UI/GameOverPanel/Buttons" unique_id=801840306]
+custom_minimum_size = Vector2(220, 58)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Restart"
+
+[node name="MainMenuButton" type="Button" parent="UI/GameOverPanel/Buttons" unique_id=519102213]
+custom_minimum_size = Vector2(220, 58)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
 text = "Main Menu"
 
 [node name="LevelUpPanel" type="Control" parent="UI" unique_id=1582258415]
@@ -198,21 +347,21 @@ grow_vertical = 2
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.7)
+color = Color(0, 0, 0, 0.2)
 
-[node name="Title" type="Label" parent="UI/LevelUpPanel" unique_id=1137615714]
+[node name="Title" type="TextureRect" parent="UI/LevelUpPanel" unique_id=1137615714]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -300.0
-offset_top = 70.0
-offset_right = 300.0
-offset_bottom = 112.0
+offset_left = -340.0
+offset_top = 36.0
+offset_right = 340.0
+offset_bottom = 206.0
 grow_horizontal = 2
-theme_override_font_sizes/font_size = 32
-text = "LEVEL UP!  Choose an upgrade"
-horizontal_alignment = 1
+texture = ExtResource("lvl_title")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="CardRow" type="HBoxContainer" parent="UI/LevelUpPanel" unique_id=966038257]
 layout_mode = 1

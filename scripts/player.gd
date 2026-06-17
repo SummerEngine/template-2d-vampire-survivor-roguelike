@@ -62,17 +62,28 @@ func _process(delta: float) -> void:
 		if _invuln_timer <= 0.0:
 			anim.modulate.a = 1.0
 	elif health > 0.0:
-		# Take one 30-damage instance if any enemy is touching, then go invincible.
+		# Take one hit if any enemy is touching, then go invincible.
 		for b in hurtbox.get_overlapping_bodies():
 			if b.is_in_group("enemies"):
-				take_damage(contact_hit_damage)
-				took_damage.emit()
-				_invuln_timer = invuln_time
+				# Each enemy carries its own contact_damage (giant hits harder).
+				var dmg: float = b.contact_damage if "contact_damage" in b else contact_hit_damage
+				apply_hit(dmg)
 				break
 	# Slow health regeneration (baseline + upgrades), only while alive.
 	if health > 0.0 and health < max_health:
 		health = min(max_health, health + (base_regen + bonus_regen) * delta)
 		health_changed.emit(health, max_health)
+
+## Single entry point for taking damage: respects i-frames and triggers them.
+## Used by contact damage and by boss hazards (projectiles, shockwave, swing).
+## Returns true if the hit actually landed.
+func apply_hit(amount: float) -> bool:
+	if health <= 0.0 or _invuln_timer > 0.0:
+		return false
+	take_damage(amount)
+	took_damage.emit()
+	_invuln_timer = invuln_time
+	return true
 
 func add_max_health(amount: float) -> void:
 	max_health += amount
@@ -87,4 +98,7 @@ func take_damage(amount: float) -> void:
 	health = max(0.0, health - amount)
 	health_changed.emit(health, max_health)
 	if health <= 0.0:
+		Sfx.play("player_death")
 		died.emit()
+	else:
+		Sfx.play("player_hurt")

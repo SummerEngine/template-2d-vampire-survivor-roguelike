@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1")
-fire_rate = 1.0
+fire_rate = 0.9
 targeting_mode = 1
 damage = 30.0
 projectile_speed = 350.0

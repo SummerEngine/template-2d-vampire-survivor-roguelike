@@ -11,7 +11,6 @@ var orbit_radius: float = 70.0
 var angle: float = 0.0
 var orbit_speed: float = 3.0        # rad/sec around the player
 var damage_per_sec: float = 50.0    # DPS to overlapping enemies
-var _fcount: int = 0
 
 func configure(p_radius: float, p_angle: float, p_speed: float, p_dps: float) -> void:
 	orbit_radius = p_radius
@@ -24,11 +23,14 @@ func _physics_process(delta: float) -> void:
 	angle += orbit_speed * delta
 	position = Vector2.from_angle(angle) * orbit_radius
 	rotation += SPIN_SPEED * delta
-	_fcount += 1
-	if _fcount % FEEDBACK_FRAMES != 0:
+	# Gate on the GLOBAL physics frame (not a per-saw counter) so every blade ticks
+	# on the SAME frames. Then if two blades overlap one enemy they both land on this
+	# tick and the damage stacks -> touching N saws deals N x the damage per tick.
+	if Engine.get_physics_frames() % FEEDBACK_FRAMES != 0:
 		return
 	var dmg := damage_per_sec * delta * FEEDBACK_FRAMES
 	for b in get_overlapping_bodies():
 		if b.is_in_group("enemies") and b.has_method("take_damage"):
 			# Vector2.INF -> no knockback; shows a damage number + flash each hit.
 			b.take_damage(dmg, Vector2.INF)
+			Sfx.play("saw_hit", 0.0, 120)  # self-throttled so the loop isn't a buzzsaw of audio

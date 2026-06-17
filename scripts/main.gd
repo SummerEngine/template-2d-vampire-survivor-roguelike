@@ -1,19 +1,20 @@
 extends Node2D
 
 const GEM_SCENE := preload("res://scenes/xp_gem.tscn")
+const BOSS_EXPLOSION := preload("res://scripts/boss_explosion.gd")
 
 # Pool of level-up upgrades. Each level-up shows 3 random distinct ones.
 const UPGRADES := [
-	{"id": "missiles", "label": "More Missiles", "desc": "Arrows fire 15% faster.", "icon": "res://assets/icons/missiles.png"},
-	{"id": "homing", "label": "More Homing Orbs", "desc": "Homing orbs fire 15% faster.", "icon": "res://assets/icons/homing.png"},
-	{"id": "speed", "label": "Movement Speed", "desc": "Move 15% faster.", "icon": "res://assets/icons/speed.png"},
-	{"id": "maxhp", "label": "+50 Max HP", "desc": "Raise maximum HP by 50.", "icon": "res://assets/icons/maxhp.png"},
-	{"id": "xprate", "label": "XP Surge", "desc": "Passively gain +1 XP every second.", "icon": "res://assets/icons/xprate.png"},
-	{"id": "regen", "label": "Health Regen", "desc": "Regenerate +1.5 HP every second.", "icon": "res://assets/icons/regen.png"},
-	{"id": "explode", "label": "Explosive Missiles", "desc": "Arrows explode on impact; blast grows each pick.", "icon": "res://assets/icons/explode.png"},
-	{"id": "bounce", "label": "Bouncing Missiles", "desc": "Arrows bounce off walls one more time.", "icon": "res://assets/icons/bounce.png"},
-	{"id": "saw", "label": "Spinning Saw", "desc": "Adds a saw blade that orbits you and shreds enemies it touches.", "icon": "res://assets/icons/saw.png"},
-	{"id": "lightning", "label": "Storm Caller", "desc": "Lightning strikes a random enemy every 5s for massive damage. Stacks: +1 bolt per pick.", "icon": "res://assets/icons/lightning.png"},
+	{"id": "missiles", "label": "More Arrows", "desc": "Arrows fire 15% faster.", "icon": "res://assets/images/img-1781615983941-0.png"},
+	{"id": "homing", "label": "More Homing Orbs", "desc": "Homing orbs fire 15% faster.", "icon": "res://assets/images/img-1781615985513-0.png"},
+	{"id": "speed", "label": "Movement Speed", "desc": "Move 20% faster.", "icon": "res://assets/images/img-1781615986659-0.png"},
+	{"id": "maxhp", "label": "+50 Max HP", "desc": "Raise maximum HP by 50.", "icon": "res://assets/images/img-1781616016450-0.png"},
+	{"id": "xprate", "label": "XP Surge", "desc": "Passively gain +1 XP every second.", "icon": "res://assets/images/img-1781616018039-0.png"},
+	{"id": "regen", "label": "Health Regen", "desc": "Regenerate +1.5 HP every second.", "icon": "res://assets/images/img-1781616019151-0.png"},
+	{"id": "explode", "label": "Explosive Arrows", "desc": "Arrows explode on impact.", "desc_next": "Larger explosion radius.", "icon": "res://assets/images/img-1781616020680-0.png"},
+	{"id": "bounce", "label": "Bouncing Arrows", "desc": "Arrows ricochet off walls.", "desc_next": "Arrows now bounce forever.", "max_stacks": 2, "icon": "res://assets/images/img-1781616035254-0.png"},
+	{"id": "saw", "label": "Spinning Saw", "desc": "A saw blade orbits you, shredding enemies it touches.", "desc_next": "Adds another orbiting saw.", "icon": "res://assets/images/img-1781616037839-0.png"},
+	{"id": "lightning", "label": "Storm Caller", "desc": "Lightning strikes an enemy every few seconds.", "desc_next": "Additional lightning strike.", "icon": "res://assets/images/img-1781616038564-0.png"},
 ]
 
 @onready var player: CharacterBody2D = $Player
@@ -25,6 +26,11 @@ const UPGRADES := [
 @onready var saw_system: Node = $Player/SawSystem
 @onready var level_system: Node = $LevelSystem
 @onready var lightning_system: Node = $LightningSystem
+@onready var boss_system: Node = $BossSystem
+@onready var boss_bar: ProgressBar = $UI/HUD/BossBar
+@onready var boss_warning: Label = $UI/BossWarning
+@onready var roar_sound: AudioStreamPlayer = $Sounds/RoarSound
+@onready var camera: Camera2D = $Player/Camera2D
 
 @onready var health_label: Label = $UI/HUD/HealthLabel
 @onready var health_bar: ProgressBar = $UI/HUD/HealthBar
@@ -34,9 +40,13 @@ const UPGRADES := [
 @onready var xp_bar: ProgressBar = $UI/HUD/XPBar
 @onready var game_over_panel: Control = $UI/GameOverPanel
 @onready var result_label: Label = $UI/GameOverPanel/ResultLabel
-@onready var main_menu_button: Button = $UI/GameOverPanel/MainMenuButton
+@onready var restart_button: Button = $UI/GameOverPanel/Buttons/RestartButton
+@onready var main_menu_button: Button = $UI/GameOverPanel/Buttons/MainMenuButton
 @onready var level_up_panel: Control = $UI/LevelUpPanel
 @onready var damage_flash: ColorRect = $UI/DamageFlash
+@onready var xp_sound: AudioStreamPlayer = $Sounds/XPSound
+@onready var level_sound: AudioStreamPlayer = $Sounds/LevelSound
+@onready var upgrade_sound: AudioStreamPlayer = $Sounds/UpgradeSound
 @onready var cards: Array = [
 	$UI/LevelUpPanel/CardRow/Card0,
 	$UI/LevelUpPanel/CardRow/Card1,
@@ -48,13 +58,20 @@ var survival_time: float = 0.0
 var is_game_over: bool = false
 var _pending_levelups: int = 0
 var _current_choices: Array = []
+var _stacks: Dictionary = {}  # upgrade id -> times picked, drives stacked descriptions
+var _shake_time: float = 0.0
+var _shake_dur: float = 0.0
+var _shake_mag: float = 0.0
+var _pause_panel: Control  # ESC pause overlay, built in _build_pause_menu()
 
 func _ready() -> void:
+	add_to_group("game")  # boss hazards reach shake() via call_group("game", ...)
 	game_over_panel.visible = false
 	level_up_panel.visible = false
 	spawner.setup(player, enemies)
 	weapon_system.setup(projectiles)
-	lightning_system.setup(self)
+	lightning_system.setup(self, player)
+	boss_system.setup(player, enemies, level_system, spawner, boss_bar, boss_warning, roar_sound)
 	player.health_changed.connect(_on_player_health_changed)
 	player.died.connect(_on_player_died)
 	player.took_damage.connect(_on_player_took_damage)
@@ -65,16 +82,28 @@ func _ready() -> void:
 	for i in cards.size():
 		cards[i].selected.connect(_on_option_selected.bind(i))
 		cards[i].hover_changed.connect(_on_card_hover)
+	restart_button.pressed.connect(_on_restart_pressed)
 	main_menu_button.pressed.connect(_on_main_menu_pressed)
+	# XP gems trigger the pickup chime via this group (no hard reference needed).
+	xp_sound.add_to_group("xp_sfx")
 	_on_player_health_changed(player.max_health, player.max_health)
 	kills_label.text = "Kills: 0"
 	_update_time()
+	_build_pause_menu()
 
 func _input(event: InputEvent) -> void:
 	# Debug: press L to force a level-up (shows the reward cards).
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
 		if not is_game_over:
 			level_system.debug_level_up()
+	# Debug: press B to spawn a boss immediately.
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
+		if not is_game_over:
+			boss_system.spawn_boss()
+	# ESC toggles the pause menu during normal gameplay.
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		_toggle_pause()
+		get_viewport().set_input_as_handled()
 
 func _process(delta: float) -> void:
 	if is_game_over:
@@ -84,8 +113,25 @@ func _process(delta: float) -> void:
 		return
 	if get_tree().paused:
 		return  # level-up menu open: freeze the timer too
+	_update_shake(delta)
 	survival_time += delta
 	_update_time()
+
+func _update_shake(delta: float) -> void:
+	if _shake_time <= 0.0:
+		return
+	_shake_time -= delta
+	if _shake_time <= 0.0:
+		camera.offset = Vector2.ZERO
+		return
+	var k := _shake_time / _shake_dur
+	camera.offset = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake_mag * k
+
+## Kick off a decaying screen shake (used on the boss kill).
+func shake(magnitude: float, duration: float) -> void:
+	_shake_mag = magnitude
+	_shake_dur = duration
+	_shake_time = duration
 
 func _on_enemy_added(node: Node) -> void:
 	if node.has_signal("died"):
@@ -97,21 +143,46 @@ func _on_enemy_died(enemy) -> void:
 	if is_instance_valid(enemy):
 		# Deferred: enemies die inside a physics collision callback, and adding
 		# an Area2D (the gem) during the physics flush is not allowed.
-		_spawn_gem.call_deferred(enemy.global_position)
+		if enemy.is_in_group("boss"):
+			_spawn_xp_burst.call_deferred(enemy.global_position)
+			_boss_death_fx.call_deferred(enemy.global_position)
+		else:
+			_spawn_gem.call_deferred(enemy.global_position)
+
+## Boss kill juice: a big fiery blast at the death spot + a screen shake.
+func _boss_death_fx(pos: Vector2) -> void:
+	var boom := BOSS_EXPLOSION.new()
+	pickups.add_child(boom)
+	boom.global_position = pos
+	shake(22.0, 0.55)
 
 func _spawn_gem(pos: Vector2) -> void:
 	var gem := GEM_SCENE.instantiate()
 	pickups.add_child(gem)
 	gem.global_position = pos
 
+## Boss reward: scatter a pile of XP gems on the ground around the death spot.
+func _spawn_xp_burst(pos: Vector2) -> void:
+	var count := 50
+	var limit := 1500.0 - 24.0
+	for i in count:
+		var gem := GEM_SCENE.instantiate()
+		pickups.add_child(gem)
+		var a := randf() * TAU
+		var r := sqrt(randf()) * 250.0  # sqrt for even area spread, not center-clumped
+		var p := pos + Vector2(cos(a), sin(a)) * r
+		gem.global_position = p.clamp(Vector2(-limit, -limit), Vector2(limit, limit))
+
 func _on_xp_changed(current: int, needed: int, lvl: int) -> void:
 	level_label.text = "Lv %d" % lvl
 	xp_bar.max_value = needed
 	xp_bar.value = current
 
-func _on_leveled_up(_lvl: int) -> void:
-	# Ramp difficulty: enemies spawn slightly more often each level.
-	spawner.increase_spawn_rate(0.92)
+func _on_leveled_up(lvl: int) -> void:
+	level_sound.play()
+	# Recompute spawn cadence from the new level: calmer in levels 1-5, converging
+	# on the old pace by ~level 12.
+	spawner.set_level(lvl)
 	# Vacuum every XP gem on the map toward the player.
 	get_tree().call_group("xp_gems", "attract_to", player)
 	_pending_levelups += 1
@@ -119,13 +190,14 @@ func _on_leveled_up(_lvl: int) -> void:
 		_show_levelup()
 
 func _show_levelup() -> void:
-	var pool := UPGRADES.duplicate()
+	# Drop upgrades that have hit their max_stacks (e.g. Bouncing Arrows after 2 picks).
+	var pool: Array = UPGRADES.filter(func(u): return not (u.has("max_stacks") and int(_stacks.get(u["id"], 0)) >= int(u["max_stacks"])))
 	pool.shuffle()
 	_current_choices = pool.slice(0, 3)
 	for i in cards.size():
 		var upg: Dictionary = _current_choices[i]
 		var tex: Texture2D = load(upg["icon"]) as Texture2D
-		cards[i].setup(tex, upg["label"], upg["desc"])
+		cards[i].setup(tex, upg["label"], _desc_for(upg))
 		cards[i].modulate = Color(1, 1, 1)
 		cards[i].scale = Vector2.ONE
 	get_tree().paused = true
@@ -136,17 +208,26 @@ func _on_card_hover(card: Control, hovered: bool) -> void:
 		c.modulate = Color(0.6, 0.6, 0.6) if (hovered and c != card) else Color(1, 1, 1)
 
 func _on_option_selected(index: int) -> void:
+	upgrade_sound.play()
 	_apply_upgrade(_current_choices[index]["id"])
 	_resolve_choice()
 
+## Description shown on a card: the base text the first time it's offered, then
+## the stacked text ("desc_next") once the player already owns at least one.
+func _desc_for(upg: Dictionary) -> String:
+	if int(_stacks.get(upg["id"], 0)) > 0 and upg.has("desc_next"):
+		return upg["desc_next"]
+	return upg["desc"]
+
 func _apply_upgrade(id: String) -> void:
+	_stacks[id] = int(_stacks.get(id, 0)) + 1
 	match id:
 		"missiles":
 			weapon_system.scale_fire_rate(false, 0.85)
 		"homing":
 			weapon_system.scale_fire_rate(true, 0.85)
 		"speed":
-			player.speed *= 1.15
+			player.speed *= 1.20
 		"maxhp":
 			player.add_max_health(50.0)
 		"xprate":
@@ -156,7 +237,12 @@ func _apply_upgrade(id: String) -> void:
 		"explode":
 			weapon_system.add_explosion(false, 60.0, 30.0)
 		"bounce":
-			weapon_system.increase_bounce(false, 1)
+			# First pick: secretly bounce twice. Second pick: infinite bounce
+			# (after which max_stacks removes it from the pool).
+			if int(_stacks["bounce"]) >= 2:
+				weapon_system.set_infinite_bounce(false)
+			else:
+				weapon_system.increase_bounce(false, 2)
 		"saw":
 			saw_system.add_saw()
 		"lightning":
@@ -181,14 +267,93 @@ func _on_player_health_changed(current: float, maximum: float) -> void:
 
 func _on_player_died() -> void:
 	is_game_over = true
-	result_label.text = "GAME OVER\nSurvived: %.1fs\nKills: %d\n\nPress R to restart" % [survival_time, kills]
+	$Sounds/Music.stop()   # cut the gameplay battle track...
+	_play_death_music()    # ...and swap in the retired, somber gothic title theme
+	result_label.text = "Survived: %.1fs        Kills: %d" % [survival_time, kills]
 	game_over_panel.visible = true
 	get_tree().paused = true
 
+## Death-screen music: the old "too boring" gothic title theme (death_music.mp3),
+## looped. process_mode = ALWAYS so it keeps playing while the tree is paused.
+## The epic one-shot death SFX is separate (player.gd -> Sfx.play("player_death")).
+func _play_death_music() -> void:
+	var dm := AudioStreamPlayer.new()
+	dm.stream = load("res://assets/sounds/death_music.mp3")
+	dm.volume_db = -8.0
+	dm.process_mode = Node.PROCESS_MODE_ALWAYS
+	dm.finished.connect(dm.play)  # loop
+	add_child(dm)
+	dm.play()
+
+func _on_restart_pressed() -> void:
+	Sfx.play("ui_click")
+	# Death pauses the tree; clear it before reloading.
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
 func _on_main_menu_pressed() -> void:
+	Sfx.play("ui_click")
 	# Death pauses the tree; clear it so the menu scene runs normally.
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+## Build the ESC pause overlay in code (process_mode ALWAYS so its buttons work
+## while the tree is paused). Resume / Main Menu / Quit.
+func _build_pause_menu() -> void:
+	_pause_panel = Control.new()
+	_pause_panel.name = "PausePanel"
+	_pause_panel.theme = load("res://resources/menu_theme.tres")  # reuse the main-menu button styling
+	_pause_panel.process_mode = Node.PROCESS_MODE_ALWAYS
+	_pause_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pause_panel.visible = false
+	$UI.add_child(_pause_panel)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.6)
+	_pause_panel.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pause_panel.add_child(center)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 18)
+	center.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "PAUSED"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 56)
+	title.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	title.add_theme_constant_override("outline_size", 10)
+	vbox.add_child(title)
+
+	vbox.add_child(_make_pause_button("Resume", _resume))
+	vbox.add_child(_make_pause_button("Main Menu", _on_main_menu_pressed))
+
+func _make_pause_button(label: String, cb: Callable) -> Button:
+	var b := Button.new()
+	b.text = label
+	b.custom_minimum_size = Vector2(320, 0)  # width consistent; themed texture supplies the height
+	b.pressed.connect(cb)
+	return b
+
+## Toggle pause, but never over the level-up panel or the game-over screen.
+func _toggle_pause() -> void:
+	if is_game_over or level_up_panel.visible:
+		return
+	if _pause_panel.visible:
+		_resume()
+	else:
+		Sfx.play("ui_click")
+		get_tree().paused = true
+		_pause_panel.visible = true
+
+func _resume() -> void:
+	Sfx.play("ui_click")
+	_pause_panel.visible = false
+	get_tree().paused = false
 
 func _update_time() -> void:
 	time_label.text = "Time: %.1fs" % survival_time
