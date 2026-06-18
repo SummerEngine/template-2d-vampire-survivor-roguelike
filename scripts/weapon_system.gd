@@ -6,8 +6,63 @@ extends Node
 var projectiles_container: Node2D
 var _cooldowns: Array[float] = []
 
+const WEAPON_DEFS := {
+	"homing": "res://resources/weapons/homing_missile.tres",
+	"arrows": "res://resources/weapons/random_missile.tres",
+	"flaming": "res://resources/weapons/flaming_arrows.tres",
+}
+
 func setup(container: Node2D) -> void:
 	projectiles_container = container
+
+## Replace the active weapon list with the given weapon ids (e.g. ["homing"]).
+## Each def is duplicated so runtime upgrades never mutate the cached resource.
+func set_loadout(ids: Array) -> void:
+	weapons.clear()
+	for wid in ids:
+		var def := _load_def(wid)
+		if def != null:
+			weapons.append(def)
+	_cooldowns.resize(weapons.size())
+	for i in _cooldowns.size():
+		_cooldowns[i] = 0.0
+
+## Add a weapon by id at runtime (e.g. when "Flaming Arrows" is picked).
+func add_weapon(wid: String) -> void:
+	if has_weapon(wid):
+		return
+	var def := _load_def(wid)
+	if def != null:
+		weapons.append(def)
+		_cooldowns.append(0.0)
+
+## Load + duplicate a weapon def by id (duplicate so upgrades don't mutate cache).
+func _load_def(wid: String) -> WeaponDef:
+	var path: String = WEAPON_DEFS.get(wid, "")
+	if path == "":
+		return null
+	var res := load(path) as WeaponDef
+	if res == null:
+		return null
+	return res.duplicate() as WeaponDef
+
+func has_weapon(wid: String) -> bool:
+	for w in weapons:
+		if w.id == wid:
+			return true
+	return false
+
+## Multiply a specific weapon's fire interval (lower = faster).
+func boost_fire_rate_id(wid: String, factor: float) -> void:
+	for w in weapons:
+		if w.id == wid:
+			w.fire_rate *= factor
+
+## Add flat damage to a specific weapon.
+func boost_damage_id(wid: String, amount: float) -> void:
+	for w in weapons:
+		if w.id == wid:
+			w.damage += amount
 
 func _ready() -> void:
 	# Self-wire defaults so the system works without editor-set exports.

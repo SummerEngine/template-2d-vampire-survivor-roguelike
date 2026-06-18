@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1")
+id = "homing"
 fire_rate = 1.0
 targeting_mode = 0
 damage = 15.0

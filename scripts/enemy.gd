@@ -11,10 +11,12 @@ const KNOCK_DECAY: float = 900.0  # how fast the jut fades (units/sec)
 @export var max_health: float = 30.0
 @export var contact_damage: float = 30.0  # damage dealt to the player on contact
 @export var rotates: bool = true  # true: face movement (bats); false: stay upright + walk anim (giant)
+@export var spawn_grow_time: float = 1.0  # grows in over this long; deals no contact damage until grown
 
 @onready var visual: CanvasItem = $Visual
 
 var health: float
+var spawning: bool = true  # true while growing in from spawn; player ignores its contact damage
 var target: Node2D
 var _knockback: Vector2 = Vector2.ZERO
 
@@ -24,6 +26,12 @@ func _ready() -> void:
 	# Own copy of the flash material so each enemy flashes independently.
 	if visual.material != null:
 		visual.material = visual.material.duplicate()
+	# Grow in from ~nothing; harmless to the player (spawning flag) until full size.
+	# Start at a tiny non-zero scale so the collision shape never has zero radius.
+	scale = Vector2(0.01, 0.01)
+	var grow := create_tween()
+	grow.tween_property(self, "scale", Vector2.ONE, spawn_grow_time).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	grow.tween_callback(func(): spawning = false)
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(target):

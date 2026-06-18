@@ -2,6 +2,7 @@ extends Node2D
 
 const GEM_SCENE := preload("res://scenes/xp_gem.tscn")
 const BOSS_EXPLOSION := preload("res://scripts/boss_explosion.gd")
+const RUN := preload("res://scripts/run_state.gd")
 
 # Pool of level-up upgrades. Each level-up shows 3 random distinct ones.
 const UPGRADES := [
@@ -15,6 +16,11 @@ const UPGRADES := [
 	{"id": "bounce", "label": "Bouncing Arrows", "desc": "Arrows ricochet off walls.", "desc_next": "Arrows now bounce forever.", "max_stacks": 2, "icon": "res://assets/images/img-1781616035254-0.png"},
 	{"id": "saw", "label": "Spinning Saw", "desc": "A saw blade orbits you, shredding enemies it touches.", "desc_next": "Adds another orbiting saw.", "icon": "res://assets/images/img-1781616037839-0.png"},
 	{"id": "lightning", "label": "Storm Caller", "desc": "Lightning strikes an enemy every few seconds.", "desc_next": "Additional lightning strike.", "icon": "res://assets/images/img-1781616038564-0.png"},
+	# Knight-only line: "needs_special" gates the unlock to characters that have it;
+	# "needs_owned" gates the follow-ups to runs that already took Flaming Arrows.
+	{"id": "flaming", "label": "Flaming Arrows", "desc": "Ignite a volley of fire arrows that burst into flame on impact.", "needs_special": "flaming", "max_stacks": 1, "icon": "res://assets/images/img-1781616020680-0.png"},
+	{"id": "flaming_rate", "label": "Roaring Blaze", "desc": "Flaming arrows fire 20% faster.", "needs_owned": "flaming", "icon": "res://assets/images/img-1781615983941-0.png"},
+	{"id": "flaming_dmg", "label": "Searing Tips", "desc": "Flaming arrows deal +12 damage.", "needs_owned": "flaming", "icon": "res://assets/images/img-1781616016450-0.png"},
 ]
 
 @onready var player: CharacterBody2D = $Player
@@ -63,6 +69,7 @@ var _shake_time: float = 0.0
 var _shake_dur: float = 0.0
 var _shake_mag: float = 0.0
 var _pause_panel: Control  # ESC pause overlay, built in _build_pause_menu()
+var _char: Dictionary = {}  # selected character config from RunState
 
 func _ready() -> void:
 	add_to_group("game")  # boss hazards reach shake() via call_group("game", ...)
@@ -72,6 +79,12 @@ func _ready() -> void:
 	weapon_system.setup(projectiles)
 	lightning_system.setup(self, player)
 	boss_system.setup(player, enemies, level_system, spawner, boss_bar, boss_warning, roar_sound)
+	# Configure the run for the selected character (stats, sprites, starting loadout).
+	_char = RUN.current()
+	player.apply_character(_char)
+	weapon_system.set_loadout(_char.get("weapons", ["homing", "arrows"]))
+	for _i in int(_char.get("saws", 0)):
+		saw_system.add_saw()
 	player.health_changed.connect(_on_player_health_changed)
 	player.died.connect(_on_player_died)
 	player.took_damage.connect(_on_player_took_damage)
@@ -190,8 +203,17 @@ func _on_leveled_up(lvl: int) -> void:
 		_show_levelup()
 
 func _show_levelup() -> void:
-	# Drop upgrades that have hit their max_stacks (e.g. Bouncing Arrows after 2 picks).
-	var pool: Array = UPGRADES.filter(func(u): return not (u.has("max_stacks") and int(_stacks.get(u["id"], 0)) >= int(u["max_stacks"])))
+	# Filter the pool: drop maxed-out upgrades, character-locked upgrades the run
+	# can't access, and follow-ups whose prerequisite isn't owned yet.
+	var specials: Array = _char.get("specials", [])
+	var pool: Array = UPGRADES.filter(func(u):
+		if u.has("max_stacks") and int(_stacks.get(u["id"], 0)) >= int(u["max_stacks"]):
+			return false
+		if u.has("needs_special") and not (u["needs_special"] in specials):
+			return false
+		if u.has("needs_owned") and int(_stacks.get(u["needs_owned"], 0)) <= 0:
+			return false
+		return true)
 	pool.shuffle()
 	_current_choices = pool.slice(0, 3)
 	for i in cards.size():
@@ -247,6 +269,12 @@ func _apply_upgrade(id: String) -> void:
 			saw_system.add_saw()
 		"lightning":
 			lightning_system.enable()
+		"flaming":
+			weapon_system.add_weapon("flaming")
+		"flaming_rate":
+			weapon_system.boost_fire_rate_id("flaming", 0.8)
+		"flaming_dmg":
+			weapon_system.boost_damage_id("flaming", 12.0)
 
 func _resolve_choice() -> void:
 	_pending_levelups -= 1

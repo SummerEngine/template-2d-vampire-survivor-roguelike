@@ -2,6 +2,7 @@ extends Area2D
 
 const TURN_RATE: float = 6.0  # radians/sec steering for homing
 const EXPLOSION := preload("res://scripts/explosion.gd")
+const HIT_SPARK := preload("res://scripts/hit_spark.gd")
 const EXPLOSION_DAMAGE_FACTOR: float = 0.5
 const WORLD_HALF: float = 1500.0  # world spans -1500..1500 (matches the boundary walls)
 const WALL_MARGIN: float = 10.0   # reflect just outside the player's max reach (1484)
@@ -93,6 +94,9 @@ func _on_body_entered(body: Node) -> void:
 		if body.has_method("take_damage"):
 			body.take_damage(damage, global_position)
 		Sfx.play("enemy_hit", 0.0, 25)
+		var spark := HIT_SPARK.new()
+		get_parent().add_child(spark)
+		spark.global_position = global_position
 		if explosion_radius > 0.0:
 			Sfx.play("explosion")
 			var ex := EXPLOSION.new()

@@ -22,7 +22,7 @@ func _ready() -> void:
 
 func _on_play_pressed() -> void:
 	Sfx.play("ui_click")
-	get_tree().change_scene_to_file("res://main.tscn")
+	get_tree().change_scene_to_file("res://scenes/character_select.tscn")
 
 func _on_options_pressed() -> void:
 	Sfx.play("ui_click")

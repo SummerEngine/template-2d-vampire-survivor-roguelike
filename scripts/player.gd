@@ -25,6 +25,26 @@ func _ready() -> void:
 	health_changed.emit(health, max_health)
 	magnet.area_entered.connect(_on_magnet_area_entered)
 
+## Apply a character config (from RunState): stats, XP magnet range, sprite set.
+## Called by main right after the scene loads, before the HUD syncs.
+func apply_character(cfg: Dictionary) -> void:
+	max_health = float(cfg.get("max_health", max_health))
+	health = max_health
+	speed = float(cfg.get("speed", speed))
+	if cfg.has("magnet_radius"):
+		# Duplicate the shape so we don't mutate the shared scene sub-resource.
+		var shp: CircleShape2D = magnet.get_node("CollisionShape2D").shape.duplicate()
+		shp.radius = float(cfg["magnet_radius"])
+		magnet.get_node("CollisionShape2D").shape = shp
+	if cfg.has("frames"):
+		var sf := load(cfg["frames"]) as SpriteFrames
+		if sf != null:
+			anim.sprite_frames = sf
+			anim.play("idle")
+	if cfg.has("sprite_scale"):
+		anim.scale = Vector2.ONE * float(cfg["sprite_scale"])
+	health_changed.emit(health, max_health)
+
 func _on_magnet_area_entered(area: Area2D) -> void:
 	if area.is_in_group("xp_gems"):
 		area.attract_to(self)
@@ -64,7 +84,8 @@ func _process(delta: float) -> void:
 	elif health > 0.0:
 		# Take one hit if any enemy is touching, then go invincible.
 		for b in hurtbox.get_overlapping_bodies():
-			if b.is_in_group("enemies"):
+			# Skip enemies still growing in from spawn (they can't hurt you yet).
+			if b.is_in_group("enemies") and not b.get("spawning"):
 				# Each enemy carries its own contact_damage (giant hits harder).
 				var dmg: float = b.contact_damage if "contact_damage" in b else contact_hit_damage
 				apply_hit(dmg)

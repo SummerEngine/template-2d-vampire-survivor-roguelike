@@ -3,6 +3,7 @@ class_name WeaponDef
 
 enum TargetingMode { CLOSEST_ENEMY, RANDOM_DIRECTION }
 
+@export var id: String = ""                     # weapon identity ("homing"/"arrows"/"flaming")
 @export var fire_rate: float = 1.0              # seconds between shots
 @export var targeting_mode: TargetingMode = TargetingMode.CLOSEST_ENEMY
 @export var damage: float = 30.0
