@@ -176,7 +176,9 @@ func _spawn_gem(pos: Vector2) -> void:
 
 ## Boss reward: scatter a pile of XP gems on the ground around the death spot.
 func _spawn_xp_burst(pos: Vector2) -> void:
-	var count := 50
+	# Slightly bigger XP reward the higher the player's level.
+	var lvl: int = int(level_system.level) if (is_instance_valid(level_system) and "level" in level_system) else 1
+	var count := 50 + lvl * 3
 	var limit := 1500.0 - 24.0
 	for i in count:
 		var gem := GEM_SCENE.instantiate()
@@ -286,6 +288,12 @@ func _on_player_took_damage() -> void:
 	damage_flash.modulate.a = 0.5
 	var tw := create_tween()
 	tw.tween_property(damage_flash, "modulate:a", 0.0, 0.3)
+	# Knight perk: getting hit shoves all enemies back a little.
+	var kb: float = float(_char.get("knockback_on_hit", 0.0))
+	if kb > 0.0:
+		for e in enemies.get_children():
+			if e.has_method("knockback_from"):
+				e.knockback_from(player.global_position, kb)
 
 func _on_player_health_changed(current: float, maximum: float) -> void:
 	health_label.text = "HP: %d / %d" % [int(ceil(current)), int(maximum)]

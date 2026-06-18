@@ -60,6 +60,13 @@ func take_damage(amount: float, from_pos: Vector2 = Vector2.INF) -> void:
 		died.emit(self)
 		queue_free()
 
+## Shove this enemy away from a point without dealing damage (Knight's on-hit
+## pushback). Reuses the same _knockback the damage path uses.
+func knockback_from(pos: Vector2, strength: float) -> void:
+	var away := global_position - pos
+	if away.length() > 0.01:
+		_knockback = away.normalized() * strength
+
 func _flash() -> void:
 	if visual.material == null:
 		return

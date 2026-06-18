@@ -43,12 +43,12 @@ func _process(delta: float) -> void:
 		_timer -= effective
 		_spawn()
 
-## 10% giant, 25% fast, 65% normal.
+## 5% giant, 25% fast, 70% normal.
 func _pick_scene() -> PackedScene:
 	var r := randf()
-	if r < 0.10:
+	if r < 0.05:
 		return GIANT
-	if r < 0.35:
+	if r < 0.30:
 		return FAST
 	return NORMAL
 

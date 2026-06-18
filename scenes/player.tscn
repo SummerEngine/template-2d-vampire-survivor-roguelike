@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/weapon_system.gd" id="2"]
@@ -14,10 +14,29 @@ radius = 28.0
 [sub_resource type="CircleShape2D" id="magnet"]
 radius = 140.0
 
+[sub_resource type="Gradient" id="dust_ramp"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(0.8, 0.72, 0.58, 0.55, 0.8, 0.72, 0.58, 0)
+
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 1
 collision_mask = 4
 script = ExtResource("1")
+
+[node name="Dust" type="CPUParticles2D" parent="."]
+position = Vector2(0, 34)
+emitting = false
+amount = 12
+lifetime = 0.55
+local_coords = false
+direction = Vector2(0, -1)
+spread = 40.0
+gravity = Vector2(0, 50)
+initial_velocity_min = 14.0
+initial_velocity_max = 38.0
+scale_amount_min = 3.0
+scale_amount_max = 6.0
+color_ramp = SubResource("dust_ramp")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 scale = Vector2(0.18, 0.18)

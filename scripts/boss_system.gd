@@ -9,8 +9,10 @@ const BOSS_SCENE := preload("res://scenes/boss.tscn")
 
 @export var first_boss_time: float = 120.0
 @export var repeat_interval: float = 120.0
-@export var base_hp: float = 1200.0
+@export var base_hp: float = 500.0
 @export var hp_per_level: float = 100.0
+@export var base_stalk_speed: float = 60.0
+@export var stalk_speed_per_level: float = 2.0  # boss moves slightly faster at higher levels
 @export var spawn_distance: float = 750.0
 @export var alive_spawn_scale: float = 0.2  # normal enemies spawn at 20% while boss is up
 @export var world_half_size: float = 1500.0
@@ -58,6 +60,8 @@ func spawn_boss() -> void:
 	# Scale HP off the current player level. Set BEFORE add_child so the boss's
 	# _ready() seeds health from the final max_health.
 	boss.max_health = base_hp + hp_per_level * float(_current_level())
+	# Boss stalks slightly faster the higher the player's level.
+	boss.stalk_speed = base_stalk_speed + stalk_speed_per_level * float(_current_level())
 	var angle := randf() * TAU
 	var pos := player.global_position + Vector2(cos(angle), sin(angle)) * spawn_distance
 	var limit := world_half_size - 80.0

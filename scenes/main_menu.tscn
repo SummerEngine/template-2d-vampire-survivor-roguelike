@@ -1,9 +1,9 @@
-[gd_scene format=3 uid="uid://cvsmainmenu01"]
+[gd_scene format=3 uid="uid://cnqnh4hsbjlk1"]
 
-[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/splash.png" id="2"]
-[ext_resource type="Texture2D" path="res://assets/title_logo.png" id="3"]
-[ext_resource type="Theme" path="res://resources/menu_theme.tres" id="4"]
+[ext_resource type="Script" uid="uid://b2x4okra6fnt2" path="res://scripts/main_menu.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://cbp2euaj8d0y8" path="res://assets/splash.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://dbxcah57y75qb" path="res://assets/title_logo.png" id="3"]
+[ext_resource type="Theme" uid="uid://clr1hl8h7furl" path="res://resources/menu_theme.tres" id="4"]
 
 [sub_resource type="Gradient" id="grad"]
 offsets = PackedFloat32Array(0, 0.5, 1)
@@ -16,7 +16,7 @@ height = 360
 fill_from = Vector2(0.5, 0)
 fill_to = Vector2(0.5, 1)
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=457341063]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -26,7 +26,7 @@ grow_vertical = 2
 theme = ExtResource("4")
 script = ExtResource("1")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=140654826]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -37,7 +37,7 @@ texture = SubResource("gradtex")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Splash" type="TextureRect" parent="."]
+[node name="Splash" type="TextureRect" parent="." unique_id=1245539978]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -48,7 +48,7 @@ texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Darken" type="ColorRect" parent="."]
+[node name="Darken" type="ColorRect" parent="." unique_id=535667781]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -57,8 +57,9 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.25)
 
-[node name="Title" type="TextureRect" parent="."]
+[node name="Title" type="TextureRect" parent="." unique_id=587199114]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_top = 24.0
 offset_bottom = 320.0
@@ -67,8 +68,9 @@ texture = ExtResource("3")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Buttons" type="VBoxContainer" parent="."]
+[node name="Buttons" type="VBoxContainer" parent="." unique_id=146318045]
 layout_mode = 1
+anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -79,25 +81,25 @@ offset_right = 170.0
 offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 0
-alignment = 1
 theme_override_constants/separation = 14
+alignment = 1
 
-[node name="PlayButton" type="Button" parent="Buttons"]
+[node name="PlayButton" type="Button" parent="Buttons" unique_id=883608239]
 custom_minimum_size = Vector2(340, 90)
 layout_mode = 2
 text = "Play"
 
-[node name="OptionsButton" type="Button" parent="Buttons"]
+[node name="OptionsButton" type="Button" parent="Buttons" unique_id=252318579]
 custom_minimum_size = Vector2(340, 90)
 layout_mode = 2
 text = "Options"
 
-[node name="QuitButton" type="Button" parent="Buttons"]
+[node name="QuitButton" type="Button" parent="Buttons" unique_id=2013028376]
 custom_minimum_size = Vector2(340, 90)
 layout_mode = 2
 text = "Quit"
 
-[node name="OptionsPanel" type="Control" parent="."]
+[node name="OptionsPanel" type="Control" parent="." unique_id=952763776]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -106,7 +108,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Dim" type="ColorRect" parent="OptionsPanel"]
+[node name="Dim" type="ColorRect" parent="OptionsPanel" unique_id=1284212947]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -115,7 +117,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.7)
 
-[node name="Center" type="CenterContainer" parent="OptionsPanel"]
+[node name="Center" type="CenterContainer" parent="OptionsPanel" unique_id=125851835]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -123,61 +125,60 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="PanelContainer" parent="OptionsPanel/Center"]
+[node name="Panel" type="PanelContainer" parent="OptionsPanel/Center" unique_id=1206196822]
 layout_mode = 2
 
-[node name="Margin" type="MarginContainer" parent="OptionsPanel/Center/Panel"]
+[node name="Margin" type="MarginContainer" parent="OptionsPanel/Center/Panel" unique_id=1146791903]
 layout_mode = 2
 theme_override_constants/margin_left = 24
 theme_override_constants/margin_top = 24
 theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 24
 
-[node name="VBox" type="VBoxContainer" parent="OptionsPanel/Center/Panel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="OptionsPanel/Center/Panel/Margin" unique_id=935637455]
 custom_minimum_size = Vector2(380, 0)
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="OptTitle" type="Label" parent="OptionsPanel/Center/Panel/Margin/VBox"]
+[node name="OptTitle" type="Label" parent="OptionsPanel/Center/Panel/Margin/VBox" unique_id=1702352748]
 layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "Options"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 32
 
-[node name="VolumeRow" type="HBoxContainer" parent="OptionsPanel/Center/Panel/Margin/VBox"]
+[node name="VolumeRow" type="HBoxContainer" parent="OptionsPanel/Center/Panel/Margin/VBox" unique_id=1125393329]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="VolLabel" type="Label" parent="OptionsPanel/Center/Panel/Margin/VBox/VolumeRow"]
+[node name="VolLabel" type="Label" parent="OptionsPanel/Center/Panel/Margin/VBox/VolumeRow" unique_id=2118019486]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 text = "Master Volume"
 vertical_alignment = 1
 
-[node name="VolumeSlider" type="HSlider" parent="OptionsPanel/Center/Panel/Margin/VBox/VolumeRow"]
+[node name="VolumeSlider" type="HSlider" parent="OptionsPanel/Center/Panel/Margin/VBox/VolumeRow" unique_id=1707567335]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
-min_value = 0.0
 max_value = 1.0
 step = 0.01
 value = 1.0
 
-[node name="FullscreenRow" type="HBoxContainer" parent="OptionsPanel/Center/Panel/Margin/VBox"]
+[node name="FullscreenRow" type="HBoxContainer" parent="OptionsPanel/Center/Panel/Margin/VBox" unique_id=692471520]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="FsLabel" type="Label" parent="OptionsPanel/Center/Panel/Margin/VBox/FullscreenRow"]
+[node name="FsLabel" type="Label" parent="OptionsPanel/Center/Panel/Margin/VBox/FullscreenRow" unique_id=1736384202]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 text = "Fullscreen"
 vertical_alignment = 1
 
-[node name="FullscreenCheck" type="CheckButton" parent="OptionsPanel/Center/Panel/Margin/VBox/FullscreenRow"]
+[node name="FullscreenCheck" type="CheckButton" parent="OptionsPanel/Center/Panel/Margin/VBox/FullscreenRow" unique_id=816317905]
 layout_mode = 2
 
-[node name="BackButton" type="Button" parent="OptionsPanel/Center/Panel/Margin/VBox"]
+[node name="BackButton" type="Button" parent="OptionsPanel/Center/Panel/Margin/VBox" unique_id=841110924]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "Back"

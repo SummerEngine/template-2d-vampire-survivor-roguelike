@@ -15,7 +15,7 @@ const POOL_SIZE := 16
 const SOUNDS := {
 	"arrow_shoot":  ["res://assets/sounds/orb_cast.mp3",     -17.0, 0.12],
 	"orb_cast":     ["res://assets/sounds/arrow_shoot.mp3",  -15.0, 0.12],
-	"enemy_hit":    ["res://assets/sounds/enemy_hit.mp3",    -13.0, 0.18],
+	"enemy_hit":    ["res://assets/sounds/enemy_hit.mp3",    -10.0, 0.18],
 	"enemy_death":  ["res://assets/sounds/enemy_death.mp3",  -15.0, 0.15],
 	"explosion":    ["res://assets/sounds/explosion.mp3",     -5.0, 0.10],
 	"saw_hit":      ["res://assets/sounds/saw_hit.mp3",      -17.0, 0.20],
@@ -24,6 +24,7 @@ const SOUNDS := {
 	"player_death": ["res://assets/sounds/player_death.mp3",   0.0, 0.0],
 	"ui_click":     ["res://assets/sounds/ui_click.mp3",      -6.0, 0.0],
 	"ui_hover":     ["res://assets/sounds/ui_hover.mp3",     -18.0, 0.05],
+	"footstep":     ["res://assets/sounds/footstep.mp3",     -16.0, 0.18],
 }
 
 var _streams: Dictionary = {}

@@ -13,11 +13,11 @@ const CHARACTERS := {
 		"name": "Mage",
 		"blurb": "Balanced all-rounder. Quick on their feet with arrows and a homing orb.",
 		"max_health": 100.0,
-		"speed": 200.0,
+		"speed": 160.0,
 		"magnet_radius": 140.0,
 		"sprite_scale": 0.18,
 		"frames": "res://resources/player_frames.tres",
-		"portrait": "res://assets/player.png",
+		"portrait": "res://assets/mage_portrait.png",
 		"weapons": ["homing", "arrows"],  # auto-firing weapons at run start
 		"saws": 0,                         # orbiting saws at run start
 		"specials": [],                    # extra upgrade ids unlocked for this character
@@ -27,14 +27,15 @@ const CHARACTERS := {
 		"name": "Knight",
 		"blurb": "Armored bruiser. Starts with two saws and homing orbs.",
 		"max_health": 150.0,
-		"speed": 150.0,
+		"speed": 120.0,
 		"magnet_radius": 200.0,
-		"sprite_scale": 0.2,
+		"sprite_scale": 0.18,
 		"frames": "res://resources/knight_frames.tres",
-		"portrait": "res://assets/knight_down_0.png",
+		"portrait": "res://assets/knight_portrait.png",
 		"weapons": ["homing"],
 		"saws": 2,
 		"specials": ["flaming"],
+		"knockback_on_hit": 200.0,  # Knight shoves all enemies back when hit
 	},
 }
 

@@ -4,7 +4,7 @@ signal health_changed(current: float, maximum: float)
 signal died
 signal took_damage
 
-@export var speed: float = 200.0
+@export var speed: float = 160.0
 @export var max_health: float = 100.0
 @export var world_half_size: float = 1500.0  # world spans -1500..1500 on each axis
 @export var body_radius: float = 16.0
@@ -19,6 +19,10 @@ var _invuln_timer: float = 0.0
 @onready var hurtbox: Area2D = $Hurtbox
 @onready var magnet: Area2D = $Magnet
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
+@onready var dust: CPUParticles2D = $Dust
+
+const STEP_INTERVAL := 0.30  # seconds between footstep sounds while moving
+var _step_timer: float = 0.0
 
 func _ready() -> void:
 	health = max_health
@@ -49,7 +53,7 @@ func _on_magnet_area_entered(area: Area2D) -> void:
 	if area.is_in_group("xp_gems"):
 		area.attract_to(self)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	var dir := Vector2.ZERO
 	if Input.is_physical_key_pressed(KEY_W): dir.y -= 1.0
 	if Input.is_physical_key_pressed(KEY_S): dir.y += 1.0
@@ -70,6 +74,16 @@ func _physics_process(_delta: float) -> void:
 		anim.play(desired_anim)
 	velocity = dir.normalized() * speed
 	move_and_slide()
+	# Subtle footsteps + kicked-up dust while actually moving.
+	var moving := dir != Vector2.ZERO
+	dust.emitting = moving
+	if moving:
+		_step_timer -= delta
+		if _step_timer <= 0.0:
+			_step_timer = STEP_INTERVAL
+			Sfx.play("footstep")
+	else:
+		_step_timer = 0.0  # next step fires promptly when movement resumes
 	# Belt-and-suspenders clamp in case the player slips past a wall.
 	var limit := world_half_size - body_radius
 	global_position = global_position.clamp(Vector2(-limit, -limit), Vector2(limit, limit))
