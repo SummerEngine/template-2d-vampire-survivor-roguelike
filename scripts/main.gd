@@ -6,21 +6,20 @@ const RUN := preload("res://scripts/run_state.gd")
 
 # Pool of level-up upgrades. Each level-up shows 3 random distinct ones.
 const UPGRADES := [
-	{"id": "missiles", "label": "More Arrows", "desc": "Arrows fire 15% faster.", "icon": "res://assets/images/img-1781615983941-0.png"},
+	{"id": "missiles", "label": "More Arrows", "desc": "Arrows fire 15% faster.", "needs_weapon": "arrows", "icon": "res://assets/images/img-1781615983941-0.png"},
 	{"id": "homing", "label": "More Homing Orbs", "desc": "Homing orbs fire 15% faster.", "icon": "res://assets/images/img-1781615985513-0.png"},
 	{"id": "speed", "label": "Movement Speed", "desc": "Move 20% faster.", "icon": "res://assets/images/img-1781615986659-0.png"},
 	{"id": "maxhp", "label": "+50 Max HP", "desc": "Raise maximum HP by 50.", "icon": "res://assets/images/img-1781616016450-0.png"},
 	{"id": "xprate", "label": "XP Surge", "desc": "Passively gain +1 XP every second.", "icon": "res://assets/images/img-1781616018039-0.png"},
 	{"id": "regen", "label": "Health Regen", "desc": "Regenerate +1.5 HP every second.", "icon": "res://assets/images/img-1781616019151-0.png"},
-	{"id": "explode", "label": "Explosive Arrows", "desc": "Arrows explode on impact.", "desc_next": "Larger explosion radius.", "icon": "res://assets/images/img-1781616020680-0.png"},
-	{"id": "bounce", "label": "Bouncing Arrows", "desc": "Arrows ricochet off walls.", "desc_next": "Arrows now bounce forever.", "max_stacks": 2, "icon": "res://assets/images/img-1781616035254-0.png"},
+	{"id": "explode", "label": "Explosive Arrows", "desc": "Arrows explode on impact.", "desc_next": "Larger explosion radius.", "needs_weapon": "arrows", "icon": "res://assets/images/img-1781616020680-0.png"},
+	{"id": "bounce", "label": "Bouncing Arrows", "desc": "Arrows ricochet off walls.", "desc_next": "Arrows now bounce forever.", "max_stacks": 2, "needs_weapon": "arrows", "icon": "res://assets/images/img-1781616035254-0.png"},
 	{"id": "saw", "label": "Spinning Saw", "desc": "A saw blade orbits you, shredding enemies it touches.", "desc_next": "Adds another orbiting saw.", "icon": "res://assets/images/img-1781616037839-0.png"},
 	{"id": "lightning", "label": "Storm Caller", "desc": "Lightning strikes an enemy every few seconds.", "desc_next": "Additional lightning strike.", "icon": "res://assets/images/img-1781616038564-0.png"},
-	# Knight-only line: "needs_special" gates the unlock to characters that have it;
-	# "needs_owned" gates the follow-ups to runs that already took Flaming Arrows.
-	{"id": "flaming", "label": "Flaming Arrows", "desc": "Ignite a volley of fire arrows that burst into flame on impact.", "needs_special": "flaming", "max_stacks": 1, "icon": "res://assets/images/img-1781616020680-0.png"},
-	{"id": "flaming_rate", "label": "Roaring Blaze", "desc": "Flaming arrows fire 20% faster.", "needs_owned": "flaming", "icon": "res://assets/images/img-1781615983941-0.png"},
-	{"id": "flaming_dmg", "label": "Searing Tips", "desc": "Flaming arrows deal +12 damage.", "needs_owned": "flaming", "icon": "res://assets/images/img-1781616016450-0.png"},
+	# Knight-only unlock: turns ON the standard arrows weapon (flavored as flaming).
+	# Once owned, the existing arrow upgrades above (More/Explosive/Bouncing) appear,
+	# because they're gated on actually having the "arrows" weapon.
+	{"id": "flaming", "label": "Flaming Arrows", "desc": "Start firing flaming arrows every second. Unlocks the arrow upgrades.", "needs_special": "flaming", "max_stacks": 1, "icon": "res://assets/images/img-1781616020680-0.png"},
 ]
 
 @onready var player: CharacterBody2D = $Player
@@ -73,6 +72,7 @@ var _char: Dictionary = {}  # selected character config from RunState
 
 func _ready() -> void:
 	add_to_group("game")  # boss hazards reach shake() via call_group("game", ...)
+	Sfx.stop_menu_music()  # gameplay has its own combat track
 	game_over_panel.visible = false
 	level_up_panel.visible = false
 	spawner.setup(player, enemies)
@@ -203,15 +203,16 @@ func _on_leveled_up(lvl: int) -> void:
 		_show_levelup()
 
 func _show_levelup() -> void:
-	# Filter the pool: drop maxed-out upgrades, character-locked upgrades the run
-	# can't access, and follow-ups whose prerequisite isn't owned yet.
+	# Filter the pool: drop maxed-out upgrades, character-locked unlocks the run
+	# can't access, and weapon upgrades for a weapon the player doesn't have yet
+	# (e.g. the arrow upgrades stay hidden for the Knight until Flaming Arrows is taken).
 	var specials: Array = _char.get("specials", [])
 	var pool: Array = UPGRADES.filter(func(u):
 		if u.has("max_stacks") and int(_stacks.get(u["id"], 0)) >= int(u["max_stacks"]):
 			return false
 		if u.has("needs_special") and not (u["needs_special"] in specials):
 			return false
-		if u.has("needs_owned") and int(_stacks.get(u["needs_owned"], 0)) <= 0:
+		if u.has("needs_weapon") and not weapon_system.has_weapon(u["needs_weapon"]):
 			return false
 		return true)
 	pool.shuffle()
@@ -270,11 +271,9 @@ func _apply_upgrade(id: String) -> void:
 		"lightning":
 			lightning_system.enable()
 		"flaming":
-			weapon_system.add_weapon("flaming")
-		"flaming_rate":
-			weapon_system.boost_fire_rate_id("flaming", 0.8)
-		"flaming_dmg":
-			weapon_system.boost_damage_id("flaming", 12.0)
+			# Turn on the standard arrows weapon — the existing arrow upgrades
+			# (More/Explosive/Bouncing) then unlock via their needs_weapon gate.
+			weapon_system.add_weapon("arrows")
 
 func _resolve_choice() -> void:
 	_pending_levelups -= 1

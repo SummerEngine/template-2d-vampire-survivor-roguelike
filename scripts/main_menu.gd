@@ -9,6 +9,7 @@ extends Control
 
 func _ready() -> void:
 	options_panel.visible = false
+	Sfx.ensure_menu_music()  # persists across menu <-> character select
 	# Play a soft tick when hovering any menu button.
 	for b in [$Buttons/PlayButton, $Buttons/OptionsButton, $Buttons/QuitButton,
 			$OptionsPanel/Center/Panel/Margin/VBox/BackButton]:

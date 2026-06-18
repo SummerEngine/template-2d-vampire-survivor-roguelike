@@ -9,7 +9,6 @@ var _cooldowns: Array[float] = []
 const WEAPON_DEFS := {
 	"homing": "res://resources/weapons/homing_missile.tres",
 	"arrows": "res://resources/weapons/random_missile.tres",
-	"flaming": "res://resources/weapons/flaming_arrows.tres",
 }
 
 func setup(container: Node2D) -> void:
@@ -51,18 +50,6 @@ func has_weapon(wid: String) -> bool:
 		if w.id == wid:
 			return true
 	return false
-
-## Multiply a specific weapon's fire interval (lower = faster).
-func boost_fire_rate_id(wid: String, factor: float) -> void:
-	for w in weapons:
-		if w.id == wid:
-			w.fire_rate *= factor
-
-## Add flat damage to a specific weapon.
-func boost_damage_id(wid: String, amount: float) -> void:
-	for w in weapons:
-		if w.id == wid:
-			w.damage += amount
 
 func _ready() -> void:
 	# Self-wire defaults so the system works without editor-set exports.

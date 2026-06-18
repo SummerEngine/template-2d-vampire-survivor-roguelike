@@ -11,7 +11,7 @@ const SAW_SCENE := preload("res://scenes/saw.tscn")
 @export var base_radius: float = 70.0
 @export var radius_step: float = 22.0
 @export var orbit_speed: float = 2.6  # base rad/sec; each saw's actual speed varies below
-@export var damage_per_sec: float = 50.0
+@export var damage_per_sec: float = 75.0
 
 @export var tether_width: float = 4.0
 @export var tether_color: Color = Color(0.55, 0.45, 0.3, 0.9)  # visible rope/chain tone

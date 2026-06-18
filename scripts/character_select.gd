@@ -21,6 +21,7 @@ const RUN := preload("res://scripts/run_state.gd")
 }
 
 func _ready() -> void:
+	Sfx.ensure_menu_music()  # keep the menu track going (no restart on scene swap)
 	for id in _cards.keys():
 		var cfg: Dictionary = RUN.CHARACTERS[id]
 		var c: Dictionary = _cards[id]

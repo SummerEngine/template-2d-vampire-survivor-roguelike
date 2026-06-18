@@ -21,7 +21,7 @@ Animation names MUST match the player's so `player.gd` works unchanged: `walk_do
 - `assets/knight_up_0.png`,   `assets/knight_up_1.png`    — BACK view, walking
 - `assets/knight_right_0.png`, `assets/knight_right_1.png` — SIDE view facing RIGHT, walking
 - idle = reuse `knight_down_0.png`
-- `assets/flame_arrow.png` — a small flaming arrow projectile pointing RIGHT (orange/yellow flames, thick black outline, white bg)
+- `assets/flame_arrow.png` — OPTIONAL polish: a small flaming arrow projectile (orange/yellow flames, thick outline, white bg). The Knight's "Flaming Arrows" just turns on the **standard arrows weapon** (no separate weapon); this texture is only a cosmetic swap if you want those arrows to look flaming.
 
 ## Pipeline
 1. Generate `knight_down_0` first (text→image, style "none", white bg). QA with Read. Note its cloudinary `fileUrl`.
@@ -40,10 +40,11 @@ Animation names MUST match the player's so `player.gd` works unchanged: `walk_do
    Replace the ext_resources so: walk_down=[knight_down_0,knight_down_1],
    walk_up=[knight_up_0,knight_up_1], walk_right=[knight_right_0,knight_right_1],
    idle=[knight_down_0]. Set each anim `speed` ~6 (2-frame cycle).
-2. **`resources/weapons/flaming_arrows.tres`** — add an ext_resource for
-   `assets/flame_arrow.png` and set `projectile_texture` to it. The base arrow art
-   points up; if flame_arrow points right, leave `projectile_rotation_offset_deg = 0`,
-   else set the offset so it faces travel direction (compare with `assets/arrow.png`).
+2. **(Optional) Flaming arrow look** — there is NO separate flaming weapon. "Flaming
+   Arrows" enables the standard `arrows` weapon (`random_missile.tres`). If you want
+   the Knight's arrows to look flaming, generate `assets/flame_arrow.png` and apply it
+   as the projectile texture on the arrows weapon the Knight gets (e.g. in
+   `main._apply_upgrade("flaming")` after `add_weapon("arrows")`). Skip entirely if not wanted.
 3. **`scripts/run_state.gd`** — knight `portrait` is already `res://assets/knight_down_0.png`;
    tune knight `sprite_scale` (currently 0.2) if the knight reads too big/small next to enemies.
 4. Trigger an import scan, then `summer_get_script_errors` on the touched scripts and

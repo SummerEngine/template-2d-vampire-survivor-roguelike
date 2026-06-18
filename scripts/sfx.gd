@@ -30,6 +30,7 @@ var _streams: Dictionary = {}
 var _players: Array[AudioStreamPlayer] = []
 var _next: int = 0
 var _last_played: Dictionary = {}  # key -> ticks_msec, for throttling
+var _menu_music: AudioStreamPlayer  # persistent menu / character-select track
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -41,6 +42,14 @@ func _ready() -> void:
 		var p := AudioStreamPlayer.new()
 		add_child(p)
 		_players.append(p)
+	# Persistent menu music: it lives on this autoload, so it survives scene
+	# changes (main menu <-> character select <-> settings) without restarting.
+	_menu_music = AudioStreamPlayer.new()
+	_menu_music.stream = load("res://assets/sounds/menu_music.mp3")
+	_menu_music.volume_db = -12.0
+	_menu_music.process_mode = Node.PROCESS_MODE_ALWAYS
+	_menu_music.finished.connect(_menu_music.play)  # loop
+	add_child(_menu_music)
 
 ## Play a registered sound. `extra_db` is added to the default volume.
 ## `min_gap_ms` > 0 drops repeat calls of the SAME sound within that window
@@ -61,3 +70,14 @@ func play(key: String, extra_db: float = 0.0, min_gap_ms: int = 0) -> void:
 	var pv: float = float(cfg[2])
 	p.pitch_scale = (1.0 + randf_range(-pv, pv)) if pv > 0.0 else 1.0
 	p.play()
+
+## Start the menu music if it isn't already playing. Idempotent — calling it
+## from every menu scene's _ready keeps the track seamless across scene swaps.
+func ensure_menu_music() -> void:
+	if _menu_music != null and not _menu_music.playing:
+		_menu_music.play()
+
+## Stop the menu music (call when gameplay starts).
+func stop_menu_music() -> void:
+	if _menu_music != null:
+		_menu_music.stop()
