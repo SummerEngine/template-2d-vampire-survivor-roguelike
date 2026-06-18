@@ -10,10 +10,10 @@ func _ready() -> void:
 	amount = 28
 	lifetime = 0.6
 	direction = Vector2(0, -1)
-	spread = 180.0
+	spread = 110.0                    # bias the spray upward instead of all directions
 	gravity = Vector2(0, 520)         # chunks arc and fall -> weighty splat
-	initial_velocity_min = 90.0
-	initial_velocity_max = 360.0
+	initial_velocity_min = 220.0      # stronger initial pop so blood erupts upward
+	initial_velocity_max = 560.0
 	damping_min = 80.0
 	damping_max = 200.0
 	angular_velocity_min = -500.0

@@ -66,7 +66,7 @@ stretch_mode = 5
 [node name="Name" type="Label" parent="Center/Cards/RogueCard/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "Rogue"
+text = "Mage"
 horizontal_alignment = 1
 
 [node name="Blurb" type="Label" parent="Center/Cards/RogueCard/VBox"]

@@ -10,7 +10,7 @@ static var character_id: String = "rogue"
 const CHARACTERS := {
 	"rogue": {
 		"id": "rogue",
-		"name": "Rogue",
+		"name": "Mage",
 		"blurb": "Balanced all-rounder. Quick on their feet with arrows and a homing orb.",
 		"max_health": 100.0,
 		"speed": 200.0,
@@ -25,7 +25,7 @@ const CHARACTERS := {
 	"knight": {
 		"id": "knight",
 		"name": "Knight",
-		"blurb": "Armored bruiser. 150 HP but slower. Starts with two saws + a homing orb and can ignite Flaming Arrows.",
+		"blurb": "Armored bruiser. Starts with two saws and homing orbs.",
 		"max_health": 150.0,
 		"speed": 150.0,
 		"magnet_radius": 200.0,

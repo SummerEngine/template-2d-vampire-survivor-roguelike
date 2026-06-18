@@ -16,7 +16,7 @@ const SOUNDS := {
 	"arrow_shoot":  ["res://assets/sounds/orb_cast.mp3",     -17.0, 0.12],
 	"orb_cast":     ["res://assets/sounds/arrow_shoot.mp3",  -15.0, 0.12],
 	"enemy_hit":    ["res://assets/sounds/enemy_hit.mp3",    -13.0, 0.18],
-	"enemy_death":  ["res://assets/sounds/enemy_death.mp3",   -9.0, 0.15],
+	"enemy_death":  ["res://assets/sounds/enemy_death.mp3",  -15.0, 0.15],
 	"explosion":    ["res://assets/sounds/explosion.mp3",     -5.0, 0.10],
 	"saw_hit":      ["res://assets/sounds/saw_hit.mp3",      -17.0, 0.20],
 	"lightning":    ["res://assets/sounds/lightning.mp3",     -4.0, 0.10],
