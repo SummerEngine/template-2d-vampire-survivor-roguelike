@@ -13,18 +13,22 @@ const POOL_SIZE := 16
 
 # key -> [res path, default volume_db, pitch_variation (+/-)]
 const SOUNDS := {
-	"arrow_shoot":  ["res://assets/sounds/orb_cast.mp3",     -17.0, 0.12],
-	"orb_cast":     ["res://assets/sounds/arrow_shoot.mp3",  -15.0, 0.12],
-	"enemy_hit":    ["res://assets/sounds/enemy_hit.mp3",    -10.0, 0.18],
-	"enemy_death":  ["res://assets/sounds/enemy_death.mp3",  -15.0, 0.15],
+	"arrow_shoot":  ["res://assets/sounds/orb_cast.mp3",     -20.0, 0.12],
+	"orb_cast":     ["res://assets/sounds/arrow_shoot.mp3",  -18.0, 0.12],
+	"enemy_hit":    ["res://assets/sounds/enemy_hit.mp3",     -6.0, 0.18],
+	"enemy_death":  ["res://assets/sounds/enemy_death.mp3",  -17.0, 0.15],
 	"explosion":    ["res://assets/sounds/explosion.mp3",     -5.0, 0.10],
 	"saw_hit":      ["res://assets/sounds/saw_hit.mp3",      -17.0, 0.20],
 	"lightning":    ["res://assets/sounds/lightning.mp3",     -4.0, 0.10],
 	"player_hurt":  ["res://assets/sounds/player_hurt.mp3",   -3.0, 0.08],
 	"player_death": ["res://assets/sounds/player_death.mp3",   0.0, 0.0],
 	"ui_click":     ["res://assets/sounds/ui_click.mp3",      -6.0, 0.0],
-	"ui_hover":     ["res://assets/sounds/ui_hover.mp3",     -18.0, 0.05],
+	"ui_hover":     ["res://assets/sounds/ui_hover.mp3",     -12.0, 0.05],
 	"footstep":     ["res://assets/sounds/footstep.mp3",     -16.0, 0.18],
+	"boss_charge":  ["res://assets/sounds/boss_charge.mp3",   -7.0, 0.08],
+	"boss_jump":    ["res://assets/sounds/boss_jump.mp3",     -8.0, 0.08],
+	"boss_land":    ["res://assets/sounds/boss_slam.mp3",      0.0, 0.08],
+	"boss_fireball":["res://assets/sounds/boss_fireball.mp3", -9.0, 0.10],
 }
 
 var _streams: Dictionary = {}

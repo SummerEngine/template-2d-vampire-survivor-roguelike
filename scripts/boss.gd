@@ -32,7 +32,11 @@ enum S { STALK, CHARGE_WIND, CHARGE, JUMP_WIND, JUMP_AIR, JUMP_LAND, BARRAGE, RE
 @export var jump_land_time: float = 0.4
 @export var jump_max_dist: float = 600.0
 @export var jump_damage: float = 40.0
-@export var jump_shock_radius: float = 230.0
+@export var jump_shock_radius: float = 185.0
+## How much the jump leads the player's movement (0 = aim where they ARE -> a pure
+## footrace that fast players win; 1 = aim where they'll BE if they hold course ->
+## running straight is a guaranteed hit, you must change direction to dodge).
+@export var jump_lead: float = 0.85
 
 @export var barrage_wind: float = 0.5
 @export var barrage_waves: int = 3
@@ -58,6 +62,16 @@ var _jump_to: Vector2 = Vector2.ZERO
 var _wave: int = 0
 var _land_marker: Node2D = null
 var _charge_tell: Node2D = null
+var _last_move: String = ""  # tracks the previous special so the boss never jumps twice in a row
+var airborne: bool = false  # true during the jump arc; player ignores its contact damage then
+var level_system: Node = null  # set by boss_system on spawn; lets the barrage scale with player level
+var _barrage_waves: int = 3    # rings this barrage fires (computed per cast from player level)
+
+## Current player level (1 if the level system isn't wired up).
+func _player_level() -> int:
+	if is_instance_valid(level_system) and "level" in level_system:
+		return int(level_system.level)
+	return 1
 
 func _ready() -> void:
 	super()  # enemy._ready: health, "enemies" group, own flash material
@@ -99,7 +113,12 @@ func _choose_move(dist: float) -> void:
 	if dist >= 220.0:
 		opts.append("barrage")
 		opts.append("barrage")
-	match opts[randi() % opts.size()]:
+	var pick: String = opts[randi() % opts.size()]
+	# Never jump twice in a row: if we'd jump again, charge instead.
+	if pick == "jump" and _last_move == "jump":
+		pick = "charge"
+	_last_move = pick
+	match pick:
 		"charge": _enter_charge()
 		"jump": _enter_jump()
 		"barrage": _enter_barrage()
@@ -117,12 +136,8 @@ func _enter_charge() -> void:
 	_state = S.CHARGE_WIND
 	_t = charge_wind
 	_set_tex(TEX_ATTACK)
-	# Lock the dash direction up front and show a beam down that line so the
-	# player can sidestep it.
+	# Lock the dash direction up front (no visual telegraph).
 	_charge_dir = (target.global_position - global_position).normalized()
-	_charge_tell = CHARGE_TELL.new()
-	add_child(_charge_tell)
-	_charge_tell.setup(_charge_dir, charge_speed * charge_dur)
 
 func _do_charge_wind(delta: float) -> void:
 	velocity = Vector2.ZERO
@@ -132,6 +147,8 @@ func _do_charge_wind(delta: float) -> void:
 	if _t <= 0.0:
 		_clear_charge_tell()
 		spr.scale = base_scale
+		Sfx.play("boss_charge")  # growl fires as the dash launches, not during the wind-up
+		get_tree().call_group("game", "shake", 8.0, 0.22)  # rumble as the boss launches its dash
 		_state = S.CHARGE
 		_t = charge_dur
 
@@ -154,8 +171,12 @@ func _enter_jump() -> void:
 	_t = jump_wind
 	_set_tex(TEX_JUMP)
 	# Lock the landing spot NOW (at the start of the wind-up), not at take-off, so
-	# the player has the whole wind-up + air time to walk out of the marked zone.
-	var to: Vector2 = target.global_position
+	# the player has the whole wind-up + air time to react. Aim where the player is
+	# HEADING (lead their velocity over the full window), not where they are now: this
+	# makes "just outrun it in a straight line" fail, so the dodge is a direction
+	# change rather than a speed check -> challenge stays even across move-speeds.
+	var pv: Vector2 = target.velocity if "velocity" in target else Vector2.ZERO
+	var to: Vector2 = target.global_position + pv * (jump_wind + jump_air) * jump_lead
 	var off: Vector2 = to - global_position
 	if off.length() > jump_max_dist:
 		to = global_position + off.normalized() * jump_max_dist
@@ -172,9 +193,11 @@ func _do_jump_wind(delta: float) -> void:
 	var k := 1.0 - _t / jump_wind
 	spr.scale = base_scale * Vector2(1.0 + 0.22 * k, 1.0 - 0.2 * k)  # deep squash
 	if _t <= 0.0:
+		Sfx.play("boss_jump")  # leap takeoff
 		_jump_from = global_position
 		_state = S.JUMP_AIR
 		_t = jump_air
+		airborne = true  # no contact damage to the player while leaping overhead
 
 func _do_jump_air(delta: float) -> void:
 	_t -= delta
@@ -189,8 +212,10 @@ func _do_jump_air(delta: float) -> void:
 		_land()
 
 func _land() -> void:
+	airborne = false  # grounded again on impact
 	_state = S.JUMP_LAND
 	_t = jump_land_time
+	Sfx.play("boss_land")  # heavy slam on impact (pairs with the shockwave + shake)
 	spr.scale = base_scale * Vector2(1.3, 0.72)  # impact squash
 	if is_instance_valid(_land_marker):
 		_land_marker.queue_free()
@@ -215,6 +240,8 @@ func _enter_barrage() -> void:
 	_state = S.BARRAGE
 	_set_tex(TEX_CAST)
 	_wave = 0
+	# More rings the higher the player's level: 3 + floor(level * 0.1).
+	_barrage_waves = barrage_waves + int(floor(_player_level() * 0.1))
 	_t = barrage_wind
 
 func _do_barrage(delta: float) -> void:
@@ -226,7 +253,7 @@ func _do_barrage(delta: float) -> void:
 		var swell := 1.0 + 0.10 * k + 0.03 * sin(_t * 30.0)
 		spr.scale = base_scale * swell
 	if _t <= 0.0:
-		if _wave < barrage_waves:
+		if _wave < _barrage_waves:
 			_fire_wave(_wave)
 			_wave += 1
 			_t = barrage_wave_gap
@@ -234,8 +261,9 @@ func _do_barrage(delta: float) -> void:
 			_enter_recover()
 
 func _fire_wave(i: int) -> void:
+	Sfx.play("boss_fireball")  # one whoosh per ring (not per projectile)
 	var n := barrage_per_wave
-	var off := float(i) * (TAU / float(n)) / float(barrage_waves)  # rotate rings to fill gaps
+	var off := float(i) * (TAU / float(n)) / float(_barrage_waves)  # rotate rings to fill gaps
 	for k in n:
 		var a := float(k) * TAU / float(n) + off
 		var dir := Vector2(cos(a), sin(a))

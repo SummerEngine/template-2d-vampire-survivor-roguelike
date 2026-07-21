@@ -39,6 +39,7 @@ scale_amount_max = 6.0
 color_ramp = SubResource("dust_ramp")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+z_index = 2
 scale = Vector2(0.18, 0.18)
 sprite_frames = ExtResource("3")
 animation = &"idle"

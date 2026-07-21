@@ -9,7 +9,6 @@ const WORLD_HALF: float = 1500.0
 
 var velocity: Vector2 = Vector2.ZERO
 var damage: float = 30.0
-var life: float = 4.0
 var _pulse: float = 0.0
 
 func _ready() -> void:
@@ -21,10 +20,10 @@ func setup(dir: Vector2, speed: float, dmg: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	position += velocity * delta
-	life -= delta
 	_pulse += delta * 18.0
 	queue_redraw()
-	if life <= 0.0 or absf(position.x) > WORLD_HALF or absf(position.y) > WORLD_HALF:
+	# No lifetime: a fireball flies until it reaches the arena wall (or hits the player).
+	if absf(position.x) > WORLD_HALF or absf(position.y) > WORLD_HALF:
 		queue_free()
 
 func _on_body_entered(body: Node) -> void:

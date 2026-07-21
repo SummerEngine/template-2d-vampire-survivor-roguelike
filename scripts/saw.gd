@@ -9,7 +9,7 @@ const FEEDBACK_FRAMES: int = 2  # hit (damage + number + flash) every N frames
 
 var orbit_radius: float = 70.0
 var angle: float = 0.0
-var orbit_speed: float = 3.0        # rad/sec around the player
+var orbit_speed: float = 3.0        # rad/sec around the player (sign = orbit direction)
 var damage_per_sec: float = 50.0    # DPS to overlapping enemies
 
 func configure(p_radius: float, p_angle: float, p_speed: float, p_dps: float) -> void:

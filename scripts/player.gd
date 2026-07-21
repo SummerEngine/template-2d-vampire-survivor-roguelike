@@ -23,6 +23,7 @@ var _invuln_timer: float = 0.0
 
 const STEP_INTERVAL := 0.30  # seconds between footstep sounds while moving
 var _step_timer: float = 0.0
+var _joystick: Node = null  # touch joystick (found lazily; absent/idle on desktop)
 
 func _ready() -> void:
 	health = max_health
@@ -55,10 +56,15 @@ func _on_magnet_area_entered(area: Area2D) -> void:
 
 func _physics_process(delta: float) -> void:
 	var dir := Vector2.ZERO
-	if Input.is_physical_key_pressed(KEY_W): dir.y -= 1.0
-	if Input.is_physical_key_pressed(KEY_S): dir.y += 1.0
-	if Input.is_physical_key_pressed(KEY_A): dir.x -= 1.0
-	if Input.is_physical_key_pressed(KEY_D): dir.x += 1.0
+	if Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP): dir.y -= 1.0
+	if Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN): dir.y += 1.0
+	if Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT): dir.x -= 1.0
+	if Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT): dir.x += 1.0
+	# Touch joystick adds its steering vector on top of the keyboard (zero on desktop).
+	if not is_instance_valid(_joystick):
+		_joystick = get_tree().get_first_node_in_group("joystick")
+	if is_instance_valid(_joystick):
+		dir += _joystick.get_vector()
 	# Pick a directional walk animation by dominant axis (idle when stopped).
 	var desired_anim := "idle"
 	if dir != Vector2.ZERO:
@@ -99,7 +105,7 @@ func _process(delta: float) -> void:
 		# Take one hit if any enemy is touching, then go invincible.
 		for b in hurtbox.get_overlapping_bodies():
 			# Skip enemies still growing in from spawn (they can't hurt you yet).
-			if b.is_in_group("enemies") and not b.get("spawning"):
+			if b.is_in_group("enemies") and not b.get("spawning") and not b.get("airborne"):
 				# Each enemy carries its own contact_damage (giant hits harder).
 				var dmg: float = b.contact_damage if "contact_damage" in b else contact_hit_damage
 				apply_hit(dmg)

@@ -119,10 +119,28 @@ func _fire(weapon: WeaponDef) -> void:
 				return  # no enemy to home onto; skip this shot
 			dir = (target.global_position - origin).normalized()
 		WeaponDef.TargetingMode.RANDOM_DIRECTION:
-			var a := randf() * TAU
-			dir = Vector2(cos(a), sin(a))
+			# Aim toward a random live enemy with a little spread (not homing — the
+			# direction is locked at launch). Spreads across the horde shot to shot.
+			# Falls back to a fully random direction when nothing's around.
+			var aim := _aim_at_random_enemy(origin)
+			if aim == Vector2.ZERO:
+				var a := randf() * TAU
+				dir = Vector2(cos(a), sin(a))
+			else:
+				dir = aim.rotated(randf_range(-0.18, 0.18))  # ~+-10 deg spread
 	var proj := projectile_scene.instantiate()
 	proj.setup(dir, target, weapon)
 	projectiles_container.add_child(proj)
 	proj.global_position = origin
 	Sfx.play("orb_cast" if weapon.homing else "arrow_shoot")
+
+## Direction toward a random live enemy (for the arrow volley), or ZERO if none exist.
+func _aim_at_random_enemy(origin: Vector2) -> Vector2:
+	var valid: Array = []
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e):
+			valid.append(e)
+	if valid.is_empty():
+		return Vector2.ZERO
+	var e: Node2D = valid[randi() % valid.size()]
+	return (e.global_position - origin).normalized()

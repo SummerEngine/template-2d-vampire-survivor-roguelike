@@ -13,6 +13,8 @@ const BOSS_SCENE := preload("res://scenes/boss.tscn")
 @export var hp_per_level: float = 100.0
 @export var base_stalk_speed: float = 60.0
 @export var stalk_speed_per_level: float = 2.0  # boss moves slightly faster at higher levels
+@export var base_move_cooldown: float = 2.0
+@export var move_cooldown_decay: float = 0.99  # downtime between moves drops 1% per level
 @export var spawn_distance: float = 750.0
 @export var alive_spawn_scale: float = 0.2  # normal enemies spawn at 20% while boss is up
 @export var world_half_size: float = 1500.0
@@ -62,6 +64,10 @@ func spawn_boss() -> void:
 	boss.max_health = base_hp + hp_per_level * float(_current_level())
 	# Boss stalks slightly faster the higher the player's level.
 	boss.stalk_speed = base_stalk_speed + stalk_speed_per_level * float(_current_level())
+	# Downtime between moves shrinks 1% per level (compounding).
+	boss.move_cooldown = base_move_cooldown * pow(move_cooldown_decay, float(_current_level() - 1))
+	# Live reference so the fireball barrage can scale with the player's CURRENT level.
+	boss.level_system = level_system
 	var angle := randf() * TAU
 	var pos := player.global_position + Vector2(cos(angle), sin(angle)) * spawn_distance
 	var limit := world_half_size - 80.0
@@ -79,6 +85,7 @@ func spawn_boss() -> void:
 
 ## Roar + flashing "BOSS" banner that pulses then fades out.
 func _announce_boss() -> void:
+	get_tree().call_group("game", "shake", 16.0, 0.6)  # ground-shaking boss arrival
 	if roar != null:
 		roar.play()
 	if warning == null:

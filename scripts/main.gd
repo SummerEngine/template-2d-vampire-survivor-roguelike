@@ -103,6 +103,11 @@ func _ready() -> void:
 	kills_label.text = "Kills: 0"
 	_update_time()
 	_build_pause_menu()
+	# Touch joystick overlay. Inert on desktop (it only listens for touch events),
+	# so the keyboard path is unchanged; player.gd reads it via the "joystick" group.
+	$UI.add_child(preload("res://scripts/virtual_joystick.gd").new())
+	# Opening rush: 5 normal enemies one second after the run begins.
+	get_tree().create_timer(1.0).timeout.connect(_opening_rush)
 
 func _input(event: InputEvent) -> void:
 	# Debug: press L to force a level-up (shows the reward cards).
@@ -145,6 +150,13 @@ func shake(magnitude: float, duration: float) -> void:
 	_shake_mag = magnitude
 	_shake_dur = duration
 	_shake_time = duration
+
+## Opening rush: drop 5 normal enemies a second into the run.
+func _opening_rush() -> void:
+	if is_game_over:
+		return
+	if is_instance_valid(spawner) and spawner.has_method("spawn_burst"):
+		spawner.spawn_burst(10)
 
 func _on_enemy_added(node: Node) -> void:
 	if node.has_signal("died"):
@@ -285,6 +297,7 @@ func _resolve_choice() -> void:
 	get_tree().paused = false
 
 func _on_player_took_damage() -> void:
+	shake(9.0, 0.22)  # quick jolt when the player is hit
 	damage_flash.modulate.a = 0.5
 	var tw := create_tween()
 	tw.tween_property(damage_flash, "modulate:a", 0.0, 0.3)
