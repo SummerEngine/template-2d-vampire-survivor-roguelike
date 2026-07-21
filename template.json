@@ -1,0 +1,44 @@
+{
+  "id": "2d-survivors-roguelike",
+  "version": "1.0.0",
+  "name": "2D Survivors Roguelike",
+  "engineMinVersion": "0.5.43",
+  "entryScene": "res://scenes/main_menu.tscn",
+  "dimension": "2D",
+  "mechanics": [
+    "auto-attacking-weapons",
+    "twin-stick-movement",
+    "endless-enemy-spawning",
+    "xp-and-leveling",
+    "upgrade-draft",
+    "orbiting-weapons",
+    "chain-lightning",
+    "homing-projectiles",
+    "boss-fights",
+    "character-select",
+    "knockback",
+    "damage-numbers",
+    "camera-shake",
+    "hud"
+  ],
+  "genres": [
+    "survivors-like",
+    "roguelite",
+    "action",
+    "arcade"
+  ],
+  "agentBrief": "A complete survivors-like: you move, weapons fire themselves, and you draft upgrades until the build snowballs (Godot 4.6, GDScript). SCENE FLOW: res://scenes/main_menu.tscn (entry) -> res://scenes/character_select.tscn -> res://main.tscn. NOTE main.tscn IS AT THE REPO ROOT, not in scenes/ — every other scene is under scenes/, so do not go hunting there for the gameplay scene. PLAYER: scripts/player.gd on scenes/player.tscn (CharacterBody2D). Eight-directional movement, position hard-clamped to +/-1500. Damage funnels through apply_hit(amount) with a 2s invulnerability timer — use that gate, not take_damage(), for anything that should respect i-frames. apply_character(cfg) reconfigures max health, speed, magnet radius and SpriteFrames from the chosen character. Animations are walk_right/walk_up/walk_down with flip_h for leftward travel; THERE IS NO SEPARATE LEFT ANIMATION SET. INPUT IS HARDCODED: there is NO [input] section in project.godot at all — player.gd reads Input.is_physical_key_pressed(KEY_W/A/S/D) directly, and main.gd reads KEY_L (debug level-up), KEY_B, KEY_ESCAPE, KEY_R. Adding gamepad or rebindable controls means building the input map from scratch. WEAPONS: scripts/weapon_system.gd fires everything automatically on per-weapon cooldowns — there is NO manual attack input. Weapons are data-driven via scripts/weapon_def.gd (class_name WeaponDef, a Resource: fire_rate, targeting_mode CLOSEST_ENEMY or RANDOM_DIRECTION, damage, projectile_speed, homing, lifetime, explosion_radius, dies_on_wall, bounce_count). Only two defs exist: resources/weapons/homing_missile.tres and random_missile.tres. Defs are duplicate()d on load so upgrades never mutate the cached resource — preserve that. Two non-projectile systems: scripts/saw_system.gd (orbiting blades on tethers) and scripts/lightning_system.gd (zaps random enemies every 4s). Targeting is scripts/targeting.gd, a static closest_enemy() doing a linear scan of the 'enemies' group. UPGRADES: the pool is a hardcoded const UPGRADES array of 11 entries in scripts/main.gd (ids: missiles, homing, speed, maxhp, xprate, regen, explode, bounce, saw, lightning, flaming) with _apply_upgrade/_desc_for/_stacks alongside it. Three random cards per level-up, gated by max_stacks, needs_weapon and needs_special. ADDING CONTENT MEANS EDITING THAT ARRAY IN main.gd — it is not resource-driven, and there is no reroll, banish or rarity system. LEVELING: scripts/level_system.gd, linear curve needed = 5 + (level-1)*3; XP comes from scripts/xp_gem.gd gems that idle until the player magnet calls attract_to(). DIFFICULTY SCALES OFF PLAYER LEVEL, NOT TIME: enemy_spawner.gd recomputes spawn_interval = max(0.2, 1.5 * pow(0.887, level-1)) on every level-up. The ONLY time-based system is scripts/boss_system.gd — first boss at 120s then every 120s, HP 500 + 100*level. survival_time is displayed but drives nothing. ENEMIES: three scenes (enemy, enemy_fast, enemy_giant) all sharing scripts/enemy.gd — straight-line chase, contact damage, knockback with decay, a spawn grow-in during which they are harmless. Mix is 5/25/70 giant/fast/normal. BOSS: scripts/boss.gd is a real state machine (stalk, charge-wind, charge, jump-wind, jump-air, jump-land, barrage, recover) with telegraph nodes. CHARACTERS: scripts/run_state.gd holds two — 'rogue' (DISPLAYED AS 'Mage' — the id and label disagree, do not assume they match) and 'knight'. run_state.gd is a static var on a preloaded script, deliberately NOT an autoload, so it needs no project reload. UI: everything is under the UI CanvasLayer in main.tscn EXCEPT the pause menu, which main.gd builds procedurally in _build_pause_menu() — you will not find it in the .tscn. AUDIO: scripts/sfx.gd is the only autoload, a 16-voice round-robin pool. CAUTION: its SOUNDS keys 'arrow_shoot' and 'orb_cast' are cross-wired to each other's files, and weapon_system.gd inverts them a second time, so the audible result is correct by accident — fixing one side alone WILL break it. NO SAVE SYSTEM EXISTS: no FileAccess, ConfigFile, user:// or JSON anywhere, so no high scores, meta-progression or persisted settings. ART: .summer/art-bible.md is the accurate style reference and locks a 'Don't Starve woodcut' dark-painterly look — read it before generating any new art. docs/ is STALE (it describes a v1 that shipped code has long since superseded); trust the scripts and the art bible over docs/. CUSTOMIZE BY: adding WeaponDef resources, extending the UPGRADES array, adding enemy scenes on enemy.gd, retuning the boss state machine — do not rewrite the weapon_system/level_system spine.",
+  "shipsProjectGodot": true,
+  "userFacing": {
+    "tagline": "Weapons fire themselves. You dodge, level up, and draft upgrades until the screen is yours.",
+    "highlights": [
+      "Automatic weapons with homing missiles, wall-bouncing arrows, orbiting saws and chain lightning",
+      "Endless enemy spawning that tightens as you level",
+      "Draft one of three upgrades on every level-up, from a pool of eleven that stack and gate each other",
+      "A telegraphed boss that returns every two minutes and scales with you",
+      "Two playable characters with different health, speed, starting weapons and an exclusive upgrade",
+      "Three enemy types, knockback, damage numbers, hit flashes and camera shake",
+      "Hand-styled woodcut art with a documented art bible to match when you add more"
+    ]
+  }
+}
