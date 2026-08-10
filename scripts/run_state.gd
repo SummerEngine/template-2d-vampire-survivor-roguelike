@@ -25,11 +25,12 @@ const CHARACTERS := {
 	"knight": {
 		"id": "knight",
 		"name": "Knight",
+		# Larger than the mage (0.18): the knight reads as the heavy character.
 		"blurb": "Armored bruiser. Starts with two saws and homing orbs.",
 		"max_health": 150.0,
 		"speed": 120.0,
 		"magnet_radius": 200.0,
-		"sprite_scale": 0.18,
+		"sprite_scale": 0.21,
 		"frames": "res://resources/knight_frames.tres",
 		"portrait": "res://assets/knight_portrait.png",
 		"weapons": ["homing"],

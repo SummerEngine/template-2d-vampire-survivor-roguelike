@@ -22,7 +22,7 @@ var _tethers: Array = []
 
 func add_saw() -> void:
 	var saw := SAW_SCENE.instantiate()
-	saw.z_index = 3  # blade stays above the player sprite (z 2) and the tether rope
+	saw.z_index = 44  # blade stays above the depth-sorted band (actors at z 2-42) and the tether rope
 	add_child(saw)
 	_saws.append(saw)
 	# A rope/line that shows the saw is tethered to the player. z_index must be
@@ -34,7 +34,7 @@ func add_saw() -> void:
 	line.default_color = tether_color
 	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
 	line.end_cap_mode = Line2D.LINE_CAP_ROUND
-	line.z_index = 1  # above the ground, behind the player, below the blade
+	line.z_index = -1  # behind the player sprite (relative z 0), above the ground
 	add_child(line)
 	_tethers.append(line)
 	_reconfigure()

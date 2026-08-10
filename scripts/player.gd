@@ -29,6 +29,10 @@ func _ready() -> void:
 	health = max_health
 	health_changed.emit(health, max_health)
 	magnet.area_entered.connect(_on_magnet_area_entered)
+	# Manual depth sort: ground y -> z band [2, 42] (below the effect layers at
+	# 45+). Player, enemies and boulders all use this same mapping, so whoever
+	# stands lower on screen draws in front.
+	z_as_relative = false
 
 ## Apply a character config (from RunState): stats, XP magnet range, sprite set.
 ## Called by main right after the scene loads, before the HUD syncs.
@@ -95,6 +99,9 @@ func _physics_process(delta: float) -> void:
 	global_position = global_position.clamp(Vector2(-limit, -limit), Vector2(limit, limit))
 
 func _process(delta: float) -> void:
+	# Depth sort from the FEET (y +34, same as the body collider), not the
+	# body center. The boulders measure depth at their ground contact point.
+	z_index = 2 + int((clampf(global_position.y + 34.0, -1500.0, 1500.0) + 1500.0) / 75.0)
 	if _invuln_timer > 0.0:
 		# Invincible: blink the sprite and count down; no contact damage.
 		_invuln_timer -= delta
@@ -103,7 +110,10 @@ func _process(delta: float) -> void:
 			anim.modulate.a = 1.0
 	elif health > 0.0:
 		# Take one hit if any enemy is touching, then go invincible.
-		for b in hurtbox.get_overlapping_bodies():
+		# The hurtbox overlaps the enemy Hitbox areas (sprite center), not the
+		# physics bodies (large enemies keep those at the feet).
+		for a in hurtbox.get_overlapping_areas():
+			var b := a.get_parent()
 			# Skip enemies still growing in from spawn (they can't hurt you yet).
 			if b.is_in_group("enemies") and not b.get("spawning") and not b.get("airborne"):
 				# Each enemy carries its own contact_damage (giant hits harder).

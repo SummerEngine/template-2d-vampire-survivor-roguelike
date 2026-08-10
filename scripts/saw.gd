@@ -29,7 +29,10 @@ func _physics_process(delta: float) -> void:
 	if Engine.get_physics_frames() % FEEDBACK_FRAMES != 0:
 		return
 	var dmg := damage_per_sec * delta * FEEDBACK_FRAMES
-	for b in get_overlapping_bodies():
+	# Overlap the enemy Hitbox areas (sprite center), not the physics bodies.
+	# Large enemies keep their physics body at the feet for terrain collision.
+	for a in get_overlapping_areas():
+		var b := a.get_parent()
 		if b.is_in_group("enemies") and b.has_method("take_damage"):
 			# Vector2.INF -> no knockback; shows a damage number + flash each hit.
 			b.take_damage(dmg, Vector2.INF)

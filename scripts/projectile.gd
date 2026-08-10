@@ -37,7 +37,8 @@ func setup(dir: Vector2, tgt: Node2D, weapon: WeaponDef) -> void:
 	$Sprite2D.scale = Vector2(weapon.projectile_scale, weapon.projectile_scale)
 
 func _ready() -> void:
-	body_entered.connect(_on_body_entered)
+	# Overlap the enemy Hitbox areas (sprite center), not the physics bodies.
+	area_entered.connect(_on_hitbox_entered)
 	# Finite-bounce wall projectiles die when their bounces run out, not by time.
 	# Infinite-bounce ones (bounces_remaining < 0) keep a lifetime so they don't
 	# accumulate on screen forever.
@@ -89,7 +90,8 @@ func _handle_wall() -> bool:
 			return true
 	return false
 
-func _on_body_entered(body: Node) -> void:
+func _on_hitbox_entered(area: Area2D) -> void:
+	var body := area.get_parent()
 	if body.is_in_group("enemies"):
 		if body.has_method("take_damage"):
 			body.take_damage(damage, global_position)

@@ -12,6 +12,10 @@ const KNOCK_DECAY: float = 900.0  # how fast the jut fades (units/sec)
 @export var contact_damage: float = 30.0  # damage dealt to the player on contact
 @export var rotates: bool = true  # true: face movement (bats); false: stay upright + walk anim (giant)
 @export var spawn_grow_time: float = 1.0  # grows in over this long; deals no contact damage until grown
+# Distance from the node center down to the drawn feet, in px. Large sprites
+# (giant, boss) set this. It moves the depth sort to the ground contact point.
+# The scene must also move its CollisionShape2D down by the same value.
+@export var foot_offset: float = 0.0
 
 @onready var visual: CanvasItem = $Visual
 
@@ -32,6 +36,11 @@ func _ready() -> void:
 	var grow := create_tween()
 	grow.tween_property(self, "scale", Vector2.ONE, spawn_grow_time).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	grow.tween_callback(func(): spawning = false)
+	# Manual depth sort, same band as player.gd / ground_scatter.gd.
+	z_as_relative = false
+
+func _process(_delta: float) -> void:
+	z_index = 2 + int((clampf(global_position.y + foot_offset, -1500.0, 1500.0) + 1500.0) / 75.0)
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(target):

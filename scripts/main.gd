@@ -316,6 +316,9 @@ func _on_player_health_changed(current: float, maximum: float) -> void:
 func _on_player_died() -> void:
 	is_game_over = true
 	$Sounds/Music.stop()   # cut the gameplay battle track...
+	# Let the killing blow read before cutting away: the world keeps moving
+	# for a beat so the player can see what got them.
+	await get_tree().create_timer(0.6).timeout
 	_play_death_music()    # ...and swap in the retired, somber gothic title theme
 	result_label.text = "Survived: %.1fs        Kills: %d" % [survival_time, kills]
 	game_over_panel.visible = true
