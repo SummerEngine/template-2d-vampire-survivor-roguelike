@@ -46,9 +46,10 @@ void fragment() {
 	vec3 s = texture(tex_sand, world_pos / sand_tile_px).rgb;
 	vec3 w = texture(splat_mask, (world_pos - arena_min) / arena_size).rgb;
 
-	// distance past the arena walls (0 inside)
+	// signed distance to the arena walls: negative inside, positive outside
 	vec2 over = max(arena_min - world_pos, world_pos - (arena_min + arena_size));
-	float outside = max(max(over.x, over.y), 0.0);
+	float wall_d = max(over.x, over.y);
+	float outside = max(wall_d, 0.0);
 	w = mix(w, vec3(0.0, 1.0, 0.0), clamp(outside / 80.0, 0.0, 1.0));
 
 	// per-material average luminance from the smallest mip (~1x1)
@@ -62,12 +63,13 @@ void fragment() {
 	float ma = max(hb.x, max(hb.y, hb.z));
 	vec3 b = max(hb - ma + blend_sharpness, vec3(0.0));
 	vec3 col = (g * b.x + r * b.y + s * b.z) / (b.x + b.y + b.z);
-	// Readable arena edge: a crisp dark line right at the wall, an immediate
-	// brightness step outside it, then a quick fade to solid black (pit walls).
-	if (outside > 0.0) {
-		float base_dark = mix(0.55, 0.0, smoothstep(0.0, oob_fade_px, outside));
-		float edge_line = 1.0 - smoothstep(4.0, 16.0, outside);
-		col *= base_dark * mix(1.0, 0.5, edge_line);
+	// Readable arena edge: a crisp dark line just INSIDE the wall, then a
+	// brightness step and a quick fade to solid black outside (pit walls).
+	if (wall_d > 0.0) {
+		col *= mix(0.55, 0.0, smoothstep(0.0, oob_fade_px, wall_d));
+	} else {
+		float edge_line = 1.0 - smoothstep(4.0, 16.0, -wall_d);
+		col *= mix(1.0, 0.5, edge_line);
 	}
 	COLOR = vec4(col, 1.0);
 }
