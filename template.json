@@ -1,6 +1,6 @@
 {
   "id": "2d-survivors-roguelike",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "name": "2D Survivors Roguelike",
   "engineMinVersion": "0.5.43",
   "entryScene": "res://scenes/main_menu.tscn",
@@ -36,9 +36,6 @@
     "stride_example.png",
     "stride_example.png.import",
     "knight_art_todo.md",
-    "cd",
-    "set",
-    "*@echo",
     "assets/_bleed_backup/**",
     ".summer/title_logo_original.png",
     ".summer/splash_original.png",
