@@ -14,7 +14,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="vampire survivors"
+config/name="2D Survivors Roguelike"
 run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
@@ -32,7 +32,7 @@ window/stretch/aspect="expand"
 
 [dotnet]
 
-project/assembly_name="vampire survivors"
+project/assembly_name="SurvivorsRoguelike2D"
 
 [layer_names]
 
